@@ -41,6 +41,7 @@ class Saver(object):
             else:
                 shutil.copyfile(filename, os.path.join(self.directory, 'model_best.pth.tar'))
 
+    '''
     def save_experiment_config(self):
         logfile = os.path.join(self.experiment_dir, 'parameters.txt')
         log_file = open(logfile, 'w')
@@ -58,3 +59,4 @@ class Saver(object):
         for key, val in p.items():
             log_file.write(key + ':' + str(val) + '\n')
         log_file.close()
+    '''
