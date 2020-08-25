@@ -2,40 +2,39 @@ import os
 
 class Parameters(object):
 	def __init__(self):
-		backbone = 'resnet' #'resnet', 'xception', 'drn', 'mobilenet'
-		out_stride = 16 #8
-		dataset = 'cityscapes' # 'pascal', 'coco', 'cityscapes'
-		use_sbd = True
-		workers = 4
-		base_size = 513
-		crop_size = 513
-		sync_bn = False
-		freeze_bn = False
-		loss_type = 'ce' # 'ce', 'focal'
+		self.backbone = 'resnet' #'resnet', 'xception', 'drn', 'mobilenet'
+		self.out_stride = 16 #8
+		self.dataset = 'cityscapes' # 'pascal', 'coco', 'cityscapes'
+		self.checkname = 'try_sseg'
+		self.use_sbd = True
+		self.workers = 4
+		self.base_size = (2048, 1024)
+		self.crop_size = (1024, 512)
+		self.sync_bn = False
+		self.freeze_bn = False
+		self.loss_type = 'ce' # 'ce', 'focal'
 
 		# training hyper params
-		epochs = 200
-		batch_size = 3
-		test_batch_size = 3
-		use_balanced_weights = False
+		self.epochs = 200
+		self.batch_size = 12
+		self.test_batch_size = 12
+		self.use_balanced_weights = False
 
 		# optimizer params
-		lr = 0.01
-		lr_scheduler = 'poly' # 'poly', 'step', 'cos'
-		momentum = 0.9
-		weight_decay = 5e-4
-		nesterov = False
+		self.lr = 0.01
+		self.lr_scheduler = 'poly' # 'poly', 'step', 'cos'
 
 		# cuda, seed and logging
-		gpu_id = '1'
+		self.cuda = True
+		self.gpu_id = '1'
 
 		# checking point
-		resume = None
-		checkname = 'deeplab_{}'.format(backbone)
+		self.resume = None
+		self.checkname = 'deeplab_{}'.format(self.backbone)
 
 		# finetuning pre-trained models
-		ft = False
+		self.ft = False
 
 		# evaluation option
-		eval_interval = 5
-		no_val = False
+		self.eval_interval = 2
+		self.no_val = False

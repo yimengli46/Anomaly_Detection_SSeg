@@ -84,7 +84,7 @@ class RandomGaussianBlur(object):
         return {'image': img,
                 'label': mask}
 
-
+'''
 class RandomScaleCrop(object):
     def __init__(self, base_size, crop_size, fill=0):
         self.base_size = base_size
@@ -147,19 +147,22 @@ class FixScaleCrop(object):
 
         return {'image': img,
                 'label': mask}
+'''
 
 class FixedResize(object):
     def __init__(self, size):
-        self.size = (size, size)  # size: (h, w)
+        self.size = size  # size: (w, h)
 
     def __call__(self, sample):
         img = sample['image']
         mask = sample['label']
 
         assert img.size == mask.size
-
+        #print('img.size = {}'.format(img.size))
         img = img.resize(self.size, Image.BILINEAR)
         mask = mask.resize(self.size, Image.NEAREST)
+
+        #print('img.size = {}'.format(img.size))
 
         return {'image': img,
                 'label': mask}

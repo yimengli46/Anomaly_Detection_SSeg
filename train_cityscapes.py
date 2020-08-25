@@ -1,194 +1,155 @@
 import os
 import numpy as np
-from tqdm import tqdm
-
-from mypath import Path
-from dataloaders import make_data_loader
-from modeling.sync_batchnorm.replicate import patch_replication_callback
 from modeling.deeplab import *
 from utils.loss import SegmentationLosses
-from utils.calculate_weights import calculate_weigths_labels
-from utils.lr_scheduler import LR_Scheduler
 from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
 
-from parameters import Parameters as par
+from parameters import Parameters
 from dataloaders.datasets import cityscapes
 from torch.utils.data import DataLoader
 
+par = Parameters()
 
-
-self.par = par
-
-# Define Saver
-self.saver = Saver(par)
-self.saver.save_experiment_config()
+#=========================================================== Define Saver =======================================================
+saver = Saver(par)
 # Define Tensorboard Summary
-self.summary = TensorboardSummary(self.saver.experiment_dir)
-self.writer = self.summary.create_summary()
+summary = TensorboardSummary(saver.experiment_dir)
+writer = summary.create_summary()
 
-# Define Dataloader
-kwargs = {'num_workers': args.workers, 'pin_memory': True}
-self.train_loader, self.val_loader, self.test_loader, self.nclass = make_data_loader(args, **kwargs)
+#=========================================================== Define Dataloader ==================================================
+dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
+num_class = dataset_train.NUM_CLASSES
+dataloader_train = DataLoader(dataset_train, batch_size=par.batch_size, shuffle=True, num_workers=int(par.batch_size/2))
 
+dataset_val = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='val')
+dataloader_val = DataLoader(dataset_val, batch_size=par.batch_size, shuffle=False, num_workers=int(par.batch_size/2))
+    
+#================================================================================================================================
 # Define network
-model = DeepLab(num_classes=self.nclass,
-                backbone=args.backbone,
-                output_stride=args.out_stride,
-                sync_bn=args.sync_bn,
-                freeze_bn=args.freeze_bn)
+model = DeepLab(num_classes=num_class, backbone=par.backbone, output_stride=par.out_stride, freeze_bn=par.freeze_bn).cuda()
 
-train_params = [{'params': model.get_1x_lr_params(), 'lr': args.lr},
-                {'params': model.get_10x_lr_params(), 'lr': args.lr * 10}]
-
-# Define Optimizer
-optimizer = torch.optim.SGD(train_params, momentum=args.momentum,
-                            weight_decay=args.weight_decay, nesterov=args.nesterov)
+#=========================================================== Define Optimizer ================================================
+import torch.optim as optim
+train_params = [{'params': model.get_1x_lr_params(), 'lr': par.lr},
+                {'params': model.get_10x_lr_params(), 'lr': par.lr * 10}]
+optimizer = optim.Adam(train_params)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
 # Define Criterion
 # whether to use class balanced weights
-if args.use_balanced_weights:
-    classes_weights_path = os.path.join(Path.db_root_dir(args.dataset), args.dataset+'_classes_weights.npy')
-    if os.path.isfile(classes_weights_path):
-        weight = np.load(classes_weights_path)
-    else:
-        weight = calculate_weigths_labels(args.dataset, self.train_loader, self.nclass)
-    weight = torch.from_numpy(weight.astype(np.float32))
-else:
-    weight = None
-self.criterion = SegmentationLosses(weight=weight, cuda=args.cuda).build_loss(mode=args.loss_type)
-self.model, self.optimizer = model, optimizer
+weight = None
+criterion = SegmentationLosses(weight=weight, cuda=par.cuda).build_loss(mode=par.loss_type)
 
 # Define Evaluator
-self.evaluator = Evaluator(self.nclass)
-# Define lr scheduler
-self.scheduler = LR_Scheduler(args.lr_scheduler, args.lr,
-                                    args.epochs, len(self.train_loader))
+evaluator = Evaluator(num_class)
 
-# Using cuda
-if args.cuda:
-    self.model = torch.nn.DataParallel(self.model, device_ids=self.args.gpu_ids)
-    patch_replication_callback(self.model)
-    self.model = self.model.cuda()
+#===================================================== Resuming checkpoint ====================================================
+best_pred = 0.0
+if par.resume is not None:
+    if not os.path.isfile(par.resume):
+        raise RuntimeError("=> no checkpoint found at '{}'" .format(par.resume))
+    checkpoint = torch.load(par.resume)
+    par.start_epoch = checkpoint['epoch']
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    best_pred = checkpoint['best_pred']
+    print("=> loaded checkpoint '{}' (epoch {})".format(par.resume, checkpoint['epoch']))
 
-# Resuming checkpoint
-self.best_pred = 0.0
-if args.resume is not None:
-    if not os.path.isfile(args.resume):
-        raise RuntimeError("=> no checkpoint found at '{}'" .format(args.resume))
-    checkpoint = torch.load(args.resume)
-    args.start_epoch = checkpoint['epoch']
-    if args.cuda:
-        self.model.module.load_state_dict(checkpoint['state_dict'])
-    else:
-        self.model.load_state_dict(checkpoint['state_dict'])
-    if not args.ft:
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
-    self.best_pred = checkpoint['best_pred']
-    print("=> loaded checkpoint '{}' (epoch {})"
-          .format(args.resume, checkpoint['epoch']))
+#=================================================================trainin
+for epoch in range(par.epochs):
+    train_loss = 0.0
+    model.train()
+    num_img_tr = len(dataloader_train)
+    
+    for iter_num, sample in enumerate(dataloader_train):
+        print('epoch = {}, iter_num = {}'.format(epoch, iter_num))
+        images, targets = sample['image'], sample['label']
+        #print('images = {}'.format(images.shape))
+        #print('targets = {}'.format(targets.shape))
+        images, targets = images.cuda(), targets.cuda()
 
-# Clear start epoch if fine-tuning
-if args.ft:
-    args.start_epoch = 0
+        
+        #================================================ compute loss =============================================
+        output = model(images)
+        loss = criterion(output, targets)
 
-    def training(self, epoch):
-        train_loss = 0.0
-        self.model.train()
-        tbar = tqdm(self.train_loader)
-        num_img_tr = len(self.train_loader)
-        for i, sample in enumerate(tbar):
-            image, target = sample['image'], sample['label']
-            if self.args.cuda:
-                image, target = image.cuda(), target.cuda()
-            self.scheduler(self.optimizer, i, epoch, self.best_pred)
-            self.optimizer.zero_grad()
-            output = self.model(image)
-            loss = self.criterion(output, target)
-            loss.backward()
-            self.optimizer.step()
-            train_loss += loss.item()
-            tbar.set_description('Train loss: %.3f' % (train_loss / (i + 1)))
-            self.writer.add_scalar('train/total_loss_iter', loss.item(), i + num_img_tr * epoch)
+        #================================================= compute gradient =================================================
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        train_loss += loss.item()
+        print('Train loss: %.3f' % (train_loss / (iter_num + 1)))
+        writer.add_scalar('train/total_loss_iter', loss.item(), iter_num + num_img_tr * epoch)
 
-            # Show 10 * 3 inference results each epoch
-            if i % (num_img_tr // 10) == 0:
-                global_step = i + num_img_tr * epoch
-                self.summary.visualize_image(self.writer, self.args.dataset, image, target, output, global_step)
+        # Show 10 * 3 inference results each epoch
+        if iter_num % (num_img_tr // 10) == 0:
+            global_step = iter_num + num_img_tr * epoch
+            summary.visualize_image(writer, par.dataset, images, targets, output, global_step)
 
-        self.writer.add_scalar('train/total_loss_epoch', train_loss, epoch)
-        print('[Epoch: %d, numImages: %5d]' % (epoch, i * self.args.batch_size + image.data.shape[0]))
-        print('Loss: %.3f' % train_loss)
+    writer.add_scalar('train/total_loss_epoch', train_loss, epoch)
+    print('[Epoch: %d, numImages: %5d]' % (epoch, iter_num * par.batch_size + images.data.shape[0]))
+    print('Loss: %.3f' % train_loss)
 
-        if self.args.no_val:
-            # save checkpoint every epoch
-            is_best = False
-            self.saver.save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': self.model.module.state_dict(),
-                'optimizer': self.optimizer.state_dict(),
-                'best_pred': self.best_pred,
-            }, is_best)
+#======================================================== evaluation stage =====================================================
 
-
-    def validation(self, epoch):
-        self.model.eval()
-        self.evaluator.reset()
-        tbar = tqdm(self.val_loader, desc='\r')
+    if epoch % par.eval_interval == 0:
+        model.eval()
+        evaluator.reset()
         test_loss = 0.0
-        for i, sample in enumerate(tbar):
-            image, target = sample['image'], sample['label']
-            if self.args.cuda:
-                image, target = image.cuda(), target.cuda()
+        for iter_num, sample in enumerate(dataloader_val):
+            print('epoch = {}, iter_num = {}'.format(epoch, iter_num))
+            images, targets = sample['image'], sample['label']
+            #print('images = {}'.format(images))
+            #print('targets = {}'.format(targets))
+            images, targets = images.cuda(), targets.cuda()
+
+            #========================== compute loss =====================
             with torch.no_grad():
-                output = self.model(image)
-            loss = self.criterion(output, target)
+                output = model(images)
+            loss = criterion(output, targets)
+
+
             test_loss += loss.item()
-            tbar.set_description('Test loss: %.3f' % (test_loss / (i + 1)))
+            print('Test loss: %.3f' % (test_loss / (iter_num + 1)))
             pred = output.data.cpu().numpy()
-            target = target.cpu().numpy()
+            targets = targets.cpu().numpy()
             pred = np.argmax(pred, axis=1)
             # Add batch sample into evaluator
-            self.evaluator.add_batch(target, pred)
+            evaluator.add_batch(targets, pred)
 
         # Fast test during the training
-        Acc = self.evaluator.Pixel_Accuracy()
-        Acc_class = self.evaluator.Pixel_Accuracy_Class()
-        mIoU = self.evaluator.Mean_Intersection_over_Union()
-        FWIoU = self.evaluator.Frequency_Weighted_Intersection_over_Union()
-        self.writer.add_scalar('val/total_loss_epoch', test_loss, epoch)
-        self.writer.add_scalar('val/mIoU', mIoU, epoch)
-        self.writer.add_scalar('val/Acc', Acc, epoch)
-        self.writer.add_scalar('val/Acc_class', Acc_class, epoch)
-        self.writer.add_scalar('val/fwIoU', FWIoU, epoch)
+        Acc = evaluator.Pixel_Accuracy()
+        Acc_class = evaluator.Pixel_Accuracy_Class()
+        mIoU = evaluator.Mean_Intersection_over_Union()
+        FWIoU = evaluator.Frequency_Weighted_Intersection_over_Union()
+        writer.add_scalar('val/total_loss_epoch', test_loss, epoch)
+        writer.add_scalar('val/mIoU', mIoU, epoch)
+        writer.add_scalar('val/Acc', Acc, epoch)
+        writer.add_scalar('val/Acc_class', Acc_class, epoch)
+        writer.add_scalar('val/fwIoU', FWIoU, epoch)
         print('Validation:')
-        print('[Epoch: %d, numImages: %5d]' % (epoch, i * self.args.batch_size + image.data.shape[0]))
-        print("Acc:{}, Acc_class:{}, mIoU:{}, fwIoU: {}".format(Acc, Acc_class, mIoU, FWIoU))
+        print('[Epoch: %d, numImages: %5d]' % (epoch, iter_num * par.batch_size + images.data.shape[0]))
+        print("Acc:{:.5}, Acc_class:{:.5}, mIoU:{:.5}, fwIoU: {:.5}".format(Acc, Acc_class, mIoU, FWIoU))
         print('Loss: %.3f' % test_loss)
 
         new_pred = mIoU
-        if new_pred > self.best_pred:
+        if new_pred > best_pred:
             is_best = True
-            self.best_pred = new_pred
-            self.saver.save_checkpoint({
+            best_pred = new_pred
+            saver.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': self.model.module.state_dict(),
-                'optimizer': self.optimizer.state_dict(),
-                'best_pred': self.best_pred,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'best_pred': best_pred,
             }, is_best)
 
-
-
-
-trainer = Trainer(args)
-
-print('Total Epoches:', trainer.args.epochs)
-for epoch in range(trainer.args.epochs):
-    trainer.training(epoch)
-    if epoch % args.eval_interval == 0:
-        trainer.validation(epoch)
-
 trainer.writer.close()
+
+
+
+
+
 
 
