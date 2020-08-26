@@ -7,5 +7,5 @@ modeling/__pycache__/
 modeling/backbone/__pycache__/
 modeling/sync_batchnorm/__pycache__/
 utils/__pycache__/
-
+run_train_sseg.sh
 
