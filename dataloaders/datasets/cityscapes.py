@@ -61,30 +61,25 @@ class CityscapesDataset(data.Dataset):
 
     def transform_tr(self, sample):
         composed_transforms = transforms.Compose([
+            tr.RandomScaleCrop(self.par.base_size, self.par.crop_size, fill=255),
+            tr.RandomColorJitter(),
             tr.RandomHorizontalFlip(),
-            tr.FixedResize(size=self.par.crop_size),
-            tr.RandomGaussianBlur(),
             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             tr.ToTensor()])
-
         return composed_transforms(sample)
 
     def transform_val(self, sample):
-
         composed_transforms = transforms.Compose([
-            tr.FixedResize(size=self.par.crop_size),
+            tr.FixedResize(resize_ratio=self.par.resize_ratio),
             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             tr.ToTensor()])
-
         return composed_transforms(sample)
 
     def transform_ts(self, sample):
-
         composed_transforms = transforms.Compose([
-            tr.FixedResize(size=self.par.crop_size),
+            tr.FixedResize(resize_ratio=self.par.resize_ratio),
             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             tr.ToTensor()])
-
         return composed_transforms(sample)
 
 '''

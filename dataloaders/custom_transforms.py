@@ -1,7 +1,7 @@
 import torch
 import random
 import numpy as np
-
+import torchvision.transforms as transforms
 from PIL import Image, ImageOps, ImageFilter
 
 class Normalize(object):
@@ -73,18 +73,20 @@ class RandomRotate(object):
                 'label': mask}
 
 
-class RandomGaussianBlur(object):
+class RandomColorJitter(object):
+    def __init__(self):
+        self.color_jitter = transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5)
+
     def __call__(self, sample):
         img = sample['image']
         mask = sample['label']
         if random.random() < 0.5:
-            img = img.filter(ImageFilter.GaussianBlur(
-                radius=random.random()))
+            img = self.color_jitter(img)
 
         return {'image': img,
                 'label': mask}
 
-'''
+#'''
 class RandomScaleCrop(object):
     def __init__(self, base_size, crop_size, fill=0):
         self.base_size = base_size
@@ -120,8 +122,9 @@ class RandomScaleCrop(object):
 
         return {'image': img,
                 'label': mask}
+#'''
 
-
+'''
 class FixScaleCrop(object):
     def __init__(self, crop_size):
         self.crop_size = crop_size
@@ -149,9 +152,10 @@ class FixScaleCrop(object):
                 'label': mask}
 '''
 
+
 class FixedResize(object):
-    def __init__(self, size):
-        self.size = size  # size: (w, h)
+    def __init__(self, resize_ratio):
+        self.ratio = resize_ratio  # size: (w, h)
 
     def __call__(self, sample):
         img = sample['image']
@@ -159,8 +163,10 @@ class FixedResize(object):
 
         assert img.size == mask.size
         #print('img.size = {}'.format(img.size))
-        img = img.resize(self.size, Image.BILINEAR)
-        mask = mask.resize(self.size, Image.NEAREST)
+        w, h = img.size
+        new_size = (int(w*self.ratio), int(h*self.ratio))
+        img = img.resize(new_size, Image.BILINEAR)
+        mask = mask.resize(new_size, Image.NEAREST)
 
         #print('img.size = {}'.format(img.size))
 

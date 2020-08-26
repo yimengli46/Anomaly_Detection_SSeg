@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from modeling.deeplab import *
+from modeling.models import deeplabv3plus_resnet101
 from utils.loss import SegmentationLosses
 from utils.saver import Saver
 from utils.summaries import TensorboardSummary
@@ -9,6 +9,7 @@ from utils.metrics import Evaluator
 from parameters import Parameters
 from dataloaders.datasets import cityscapes
 from torch.utils.data import DataLoader
+import torch
 
 par = Parameters()
 
@@ -28,12 +29,12 @@ dataloader_val = DataLoader(dataset_val, batch_size=par.batch_size, shuffle=Fals
     
 #================================================================================================================================
 # Define network
-model = DeepLab(num_classes=num_class, backbone=par.backbone, output_stride=par.out_stride, freeze_bn=par.freeze_bn).cuda()
+model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
 
 #=========================================================== Define Optimizer ================================================
 import torch.optim as optim
-train_params = [{'params': model.get_1x_lr_params(), 'lr': par.lr},
-                {'params': model.get_10x_lr_params(), 'lr': par.lr * 10}]
+train_params = [{'params': model.backbone.parameters(), 'lr': par.lr},
+                {'params': model.classifier.parameters(), 'lr': par.lr * 10}]
 optimizer = optim.Adam(train_params)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 

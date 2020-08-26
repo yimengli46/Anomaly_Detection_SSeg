@@ -8,16 +8,17 @@ class Parameters(object):
 		self.checkname = 'try_sseg'
 		self.use_sbd = True
 		self.workers = 4
-		self.base_size = (2048, 1024)
-		self.crop_size = (1024, 512)
+		self.base_size = 1024
+		self.crop_size = 768
+		self.resize_ratio = 0.5
 		self.sync_bn = False
 		self.freeze_bn = False
 		self.loss_type = 'ce' # 'ce', 'focal'
 
 		# training hyper params
 		self.epochs = 200
-		self.batch_size = 12
-		self.test_batch_size = 12
+		self.batch_size = 14
+		self.test_batch_size = 14
 		self.use_balanced_weights = False
 
 		# optimizer params
