@@ -2,6 +2,12 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
+'''
+model_output_size: feature size
+centroid_size: embedding size
+
+
+'''
 
 class ResNet_DUQ(nn.Module):
     def __init__(

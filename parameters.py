@@ -39,3 +39,12 @@ class Parameters(object):
 		# evaluation option
 		self.eval_interval = 2
 		self.no_val = False
+
+		# duq params
+		self.duq_centroid_size=512
+		self.duq_model_output_size=256,
+		self.duq_learning_rate = 0.05
+		self.duq_l_gradient_penalty=0.5
+		self.duq_gamma = 0.999
+		self.duq_length_scale = 0.1
+		self.duq_weight_decay = 5e-4

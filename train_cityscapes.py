@@ -71,7 +71,6 @@ for epoch in range(par.epochs):
         #print('targets = {}'.format(targets.shape))
         images, targets = images.cuda(), targets.cuda()
 
-        
         #================================================ compute loss =============================================
         output = model(images)
         loss = criterion(output, targets)
