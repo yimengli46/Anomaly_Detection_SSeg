@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from modeling.models import deeplabv3plus_resnet101
+from modeling.models import deeplabv3plus_resnet101, deeplabv3plus_resnet50, deeplabv3plus_mobilenet
 from utils.loss import SegmentationLosses
 from utils.saver import Saver
 from utils.summaries import TensorboardSummary
@@ -29,7 +29,8 @@ dataloader_val = DataLoader(dataset_val, batch_size=par.batch_size, shuffle=Fals
     
 #================================================================================================================================
 # Define network
-model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
+#model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
+model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
 
 #=========================================================== Define Optimizer ================================================
 import torch.optim as optim
