@@ -26,7 +26,7 @@ sns.set()
 
 
 class Model_bilinear(nn.Module):
-    def __init__(self, features, num_embeddings): # num_embeddings equals num_classes
+    def __init__(self, features, num_classes): # num_embeddings equals num_classes
         super().__init__()
         
         self.gamma = 0.99
@@ -39,19 +39,22 @@ class Model_bilinear(nn.Module):
         self.fc3 = nn.Linear(features, features)
         
         # embedding_size is # of centroids
-        self.W = nn.Parameter(torch.normal(torch.zeros(embedding_size, num_embeddings, features), 1))
+        # W.shape = num_centroids x num_classes x feature_size
+        self.W = nn.Parameter(torch.normal(torch.zeros(embedding_size, num_classes, features), 1)) 
         
-        self.register_buffer('N', torch.ones(num_embeddings) * 20) # self.N.shape = torch.Size([2])
-        self.register_buffer('m', torch.normal(torch.zeros(embedding_size, num_embeddings), 1)) # self.m.shape = torch.Size([10, 2])
+        self.register_buffer('N', torch.ones(num_classes) * 20) # self.N.shape = torch.Size([2])
+        self.register_buffer('m', torch.normal(torch.zeros(embedding_size, num_classes), 1)) # self.m.shape = torch.Size([10, 2])
         
         self.m = self.m * self.N.unsqueeze(0) # self.m.shape = torch.Size([10, 2])
 
     def embed(self, x):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        
-        # i is batch, m is embedding_size, n is num_embeddings (classes)
+        x = self.fc3(x) # x.shape = batch_size x feature_size
+        print('x.shape = {}'.format(x.shape))
+        assert 1==2
+
+        # i is batch, m is embedding_size, n is num_classes (classes)
         x = torch.einsum('ij,mnj->imn', x, self.W)
         
         return x
@@ -98,7 +101,7 @@ X_train, y_train = sklearn.datasets.make_moons(n_samples=1500, noise=noise)
 X_test, y_test = sklearn.datasets.make_moons(n_samples=200, noise=noise)
 
 num_classes = 2
-batch_size = 64
+batch_size = 63
 
 model = Model_bilinear(20, num_classes)
 

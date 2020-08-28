@@ -44,7 +44,7 @@ class DeepLabHeadV3Plus(nn.Module):
         )
         self._init_weight()
 
-#================================================================================================================================
+#========================================================== duq variables =======================================================
         self.gamma = par.duq_gamma
 
         self.W = nn.Parameter(
@@ -54,18 +54,46 @@ class DeepLabHeadV3Plus(nn.Module):
 
         self.register_buffer('N', torch.zeros(num_classes) + 13)
         self.register_buffer(
-            "m", torch.normal(torch.zeros(centroid_size, num_classes), 0.05)
+            'm', torch.normal(torch.zeros(centroid_size, num_classes), 0.05)
         )
         self.m = self.m * self.N
 
         self.sigma = length_scale
 
 
+    def rbf(self, z):
+        z = torch.einsum("ij,mnj->imn", z, self.W)
+
+        embeddings = self.m / self.N.unsqueeze(0)
+
+        diff = z - embeddings.unsqueeze(0)
+        diff = (diff ** 2).mean(1).div(2 * self.sigma ** 2).mul(-1).exp()
+
+        return diff
+
+    def update_embeddings(self, x, y):
+        self.N = self.gamma * self.N + (1 - self.gamma) * y.sum(0)
+
+        z = self.resnet(x)
+
+        z = torch.einsum("ij,mnj->imn", z, self.W)
+        embedding_sum = torch.einsum("ijk,ik->jk", z, y)
+
+        self.m = self.gamma * self.m + (1 - self.gamma) * embedding_sum
+
+    def forward(self, x):
+        z = self.resnet(x)
+        y_pred = self.rbf(z)
+
+        return z, y_pred
+
+
     def forward(self, feature):
         low_level_feature = self.project( feature['low_level'] )
         output_feature = self.aspp(feature['out'])
         output_feature = F.interpolate(output_feature, size=low_level_feature.shape[2:], mode='bilinear', align_corners=False)
-        return self.classifier( torch.cat( [ low_level_feature, output_feature ], dim=1 ) )
+        z = self.classifier(torch.cat([low_level_feature, output_feature], dim=1)) # z.shape = batch_size x h x w x 256?
+
     
     def _init_weight(self):
         for m in self.modules():
