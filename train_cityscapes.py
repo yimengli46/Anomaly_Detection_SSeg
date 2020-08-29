@@ -5,6 +5,8 @@ from utils.loss import SegmentationLosses
 from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
+from utils.lr_scheduler import PolyLR
+from modeling.utils import set_bn_momentum
 
 from parameters import Parameters
 from dataloaders.datasets import cityscapes
@@ -32,12 +34,14 @@ dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle
 #model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
 model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
 
+set_bn_momentum(model.backbone, momentum=0.01)
+
 #=========================================================== Define Optimizer ================================================
 import torch.optim as optim
-train_params = [{'params': model.backbone.parameters(), 'lr': par.lr},
-                {'params': model.classifier.parameters(), 'lr': par.lr * 10}]
-optimizer = optim.Adam(train_params)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+train_params = [{'params': model.backbone.parameters(), 'lr': par.lr*0.1},
+                {'params': model.classifier.parameters(), 'lr': par.lr}]
+optimizer = optim.SGD(train_params, lr=par.lr, momentum=0.9, weight_decay=1e-4)
+scheduler = PolyLR(optimizer, 10000, power=0.9)
 
 # Define Criterion
 # whether to use class balanced weights
