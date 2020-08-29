@@ -25,8 +25,8 @@ num_class = dataset_train.NUM_CLASSES
 dataloader_train = DataLoader(dataset_train, batch_size=par.batch_size, shuffle=True, num_workers=int(par.batch_size/2))
 
 dataset_val = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='val')
-dataloader_val = DataLoader(dataset_val, batch_size=par.batch_size, shuffle=False, num_workers=int(par.batch_size/2))
-    
+dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
+
 #================================================================================================================================
 # Define network
 #model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
@@ -71,7 +71,6 @@ for epoch in range(par.epochs):
         #print('images = {}'.format(images.shape))
         #print('targets = {}'.format(targets.shape))
         images, targets = images.cuda(), targets.cuda()
-
         
         #================================================ compute loss =============================================
         output = model(images)
@@ -111,7 +110,6 @@ for epoch in range(par.epochs):
             with torch.no_grad():
                 output = model(images)
             loss = criterion(output, targets)
-
 
             test_loss += loss.item()
             print('Test loss: %.3f' % (test_loss / (iter_num + 1)))

@@ -10,7 +10,7 @@ class Parameters(object):
 		self.workers = 4
 		self.base_size = 1024
 		self.crop_size = 768
-		self.resize_ratio = 0.5
+		self.resize_ratio = 1.0
 		self.sync_bn = False
 		self.freeze_bn = False
 		self.loss_type = 'ce' # 'ce', 'focal'
@@ -18,7 +18,7 @@ class Parameters(object):
 		# training hyper params
 		self.epochs = 200
 		self.batch_size = 22
-		self.test_batch_size = 14
+		self.test_batch_size = 16
 		self.use_balanced_weights = False
 
 		# optimizer params
