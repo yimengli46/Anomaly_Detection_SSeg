@@ -32,7 +32,8 @@ dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle
 #================================================================================================================================
 # Define network
 #model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
-model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
+#model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
+model = deeplabv3plus_resnet50(num_classes=num_class, output_stride=par.out_stride).cuda()
 
 set_bn_momentum(model.backbone, momentum=0.01)
 
