@@ -2,13 +2,30 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .utils import _SimpleSegmentationModel
+from .utils import _SimpleSegmentationModel, _SimpleSegmentationModel_duq
 
 
-__all__ = ["DeepLabV3"]
+__all__ = ['DeepLabV3', 'DeepLabV3_duq']
 
 
 class DeepLabV3(_SimpleSegmentationModel):
+    """
+    Implements DeepLabV3 model from
+    `"Rethinking Atrous Convolution for Semantic Image Segmentation"
+    <https://arxiv.org/abs/1706.05587>`_.
+
+    Arguments:
+        backbone (nn.Module): the network used to compute the features for the model.
+            The backbone should return an OrderedDict[Tensor], with the key being
+            "out" for the last feature map used, and "aux" if an auxiliary classifier
+            is used.
+        classifier (nn.Module): module that takes the "out" element returned from
+            the backbone and returns a dense prediction.
+        aux_classifier (nn.Module, optional): auxiliary classifier used during training
+    """
+    pass
+
+class DeepLabV3_duq(_SimpleSegmentationModel_duq):
     """
     Implements DeepLabV3 model from
     `"Rethinking Atrous Convolution for Semantic Image Segmentation"
@@ -48,7 +65,9 @@ class DeepLabHeadV3Plus(nn.Module):
         low_level_feature = self.project( feature['low_level'] )
         output_feature = self.aspp(feature['out'])
         output_feature = F.interpolate(output_feature, size=low_level_feature.shape[2:], mode='bilinear', align_corners=False)
-        return self.classifier( torch.cat( [ low_level_feature, output_feature ], dim=1 ) )
+        a = self.classifier( torch.cat( [ low_level_feature, output_feature ], dim=1 ) ) #a.shape = batch_size x num_classes x 192 x 192
+        #print('a.shape = {}'.format(a.shape))
+        return a
     
     def _init_weight(self):
         for m in self.modules():

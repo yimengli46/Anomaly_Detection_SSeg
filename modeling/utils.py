@@ -4,6 +4,11 @@ import numpy as np
 import torch.nn.functional as F
 from collections import OrderedDict
 
+def set_bn_momentum(model, momentum=0.1):
+    for m in model.modules():
+        if isinstance(m, nn.BatchNorm2d):
+            m.momentum = momentum
+
 class _SimpleSegmentationModel(nn.Module):
     def __init__(self, backbone, classifier):
         super(_SimpleSegmentationModel, self).__init__()
@@ -16,6 +21,24 @@ class _SimpleSegmentationModel(nn.Module):
         x = self.classifier(features)
         x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
         return x
+
+class _SimpleSegmentationModel_duq(nn.Module):
+    def __init__(self, backbone, classifier):
+        super(_SimpleSegmentationModel_duq, self).__init__()
+        self.backbone = backbone
+        self.classifier = classifier
+        
+    def forward(self, x):
+        input_shape = x.shape[-2:]
+        features = self.backbone(x)
+        x, z = self.classifier(features)
+        x_interpolated = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
+        return x_interpolated, x, z
+
+    def update_embeddings(self, x, target_y):
+        input_shape = x.shape[-2:]
+        features = self.backbone(x)
+        self.classifier.update_embeddings(features, target_y)
 
 
 class IntermediateLayerGetter(nn.ModuleDict):
@@ -74,3 +97,26 @@ class IntermediateLayerGetter(nn.ModuleDict):
                 out_name = self.return_layers[name]
                 out[out_name] = x
         return out
+
+def calc_gradients_input(x, y_pred):
+    gradients = torch.autograd.grad(
+        outputs=y_pred,
+        inputs=x,
+        grad_outputs=torch.ones_like(y_pred),
+        create_graph=True,
+    )[0]
+
+    gradients = gradients.flatten(start_dim=1)
+
+    return gradients
+
+def calc_gradient_penalty(x, y_pred):
+    gradients = calc_gradients_input(x, y_pred)
+
+    # L2 norm
+    grad_norm = gradients.norm(2, dim=1)
+
+    # Two sided penalty
+    gradient_penalty = ((grad_norm - 1) ** 2).mean()
+
+    return gradient_penalty

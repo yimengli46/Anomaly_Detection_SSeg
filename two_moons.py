@@ -20,11 +20,6 @@ import seaborn as sns
 
 sns.set()
 
-
-# In[ ]:
-#device = torch.device("cuda:{}".format(1) if torch.cuda.is_available() else "cpu")
-
-
 class Model_bilinear(nn.Module):
     def __init__(self, features, num_classes): # num_embeddings equals num_classes
         super().__init__()

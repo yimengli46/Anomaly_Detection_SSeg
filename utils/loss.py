@@ -1,5 +1,8 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
+num_classes = 19
 
 class SegmentationLosses(object):
     def __init__(self, weight=None, batch_average=True, ignore_index=255, cuda=False):
@@ -14,6 +17,8 @@ class SegmentationLosses(object):
             return self.CrossEntropyLoss
         elif mode == 'focal':
             return self.FocalLoss
+        elif mode == 'bce':
+            return self.BinaryCrossEntropyLoss
         else:
             raise NotImplementedError
 
@@ -27,6 +32,12 @@ class SegmentationLosses(object):
 
         #if self.batch_average:
         #    loss /= n
+
+        return loss
+
+    def BinaryCrossEntropyLoss(self, logit, target):
+        
+        loss = F.binary_cross_entropy(logit, target, reduction="sum").div(num_classes * logit.shape[0])
 
         return loss
 

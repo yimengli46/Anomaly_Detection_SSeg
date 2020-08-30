@@ -1,7 +1,8 @@
 from .utils import IntermediateLayerGetter
-from ._deeplab import DeepLabHead, DeepLabHeadV3Plus, DeepLabV3
+from ._deeplab import DeepLabHead, DeepLabHeadV3Plus, DeepLabV3, DeepLabV3_duq
 from .backbone import resnet
 from .backbone import mobilenetv2
+from ._deeplab_duq import DeepLabHeadV3Plus_duq
 
 def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
 
@@ -25,12 +26,13 @@ def _segm_resnet(name, backbone_name, num_classes, output_stride, pretrained_bac
     elif name=='deeplabv3':
         return_layers = {'layer4': 'out'}
         classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
+
     backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
 
     model = DeepLabV3(backbone, classifier)
     return model
 
-def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_backbone):
+def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_backbone, par=None):
     if output_stride==8:
         aspp_dilate = [12, 24, 36]
     else:
@@ -53,24 +55,32 @@ def _segm_mobilenet(name, backbone_name, num_classes, output_stride, pretrained_
     elif name=='deeplabv3':
         return_layers = {'high_level_features': 'out'}
         classifier = DeepLabHead(inplanes , num_classes, aspp_dilate)
-    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+    elif name=='deeplabv3plus_duq':
+        return_layers = {'high_level_features': 'out', 'low_level_features': 'low_level'}
+        classifier = DeepLabHeadV3Plus_duq(inplanes, low_level_planes, num_classes, aspp_dilate, par)
 
-    model = DeepLabV3(backbone, classifier)
+    backbone = IntermediateLayerGetter(backbone, return_layers=return_layers)
+    
+    if name == 'deeplabv3plus_duq':
+        model = DeepLabV3_duq(backbone, classifier)
+    else:
+        model = DeepLabV3(backbone, classifier)
     return model
 
-def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone):
+
+#==============================================================================================================================
+def _load_model(arch_type, backbone, num_classes, output_stride, pretrained_backbone, par=None):
 
     if backbone=='mobilenetv2':
-        model = _segm_mobilenet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+        model = _segm_mobilenet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone, par=par)
     elif backbone.startswith('resnet'):
         model = _segm_resnet(arch_type, backbone, num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
     else:
         raise NotImplementedError
     return model
 
-
+#================================================================================================================================
 # Deeplab v3
-
 def deeplabv3_resnet50(num_classes=21, output_stride=8, pretrained_backbone=True):
     """Constructs a DeepLabV3 model with a ResNet-50 backbone.
 
@@ -135,3 +145,13 @@ def deeplabv3plus_mobilenet(num_classes=21, output_stride=8, pretrained_backbone
         pretrained_backbone (bool): If True, use the pretrained backbone.
     """
     return _load_model('deeplabv3plus', 'mobilenetv2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone)
+
+def deeplabv3plus_duq_mobilenet(num_classes=21, output_stride=8, pretrained_backbone=True, par=None):
+    """Constructs a DeepLabV3+ model with a MobileNetv2 backbone.
+
+    Args:
+        num_classes (int): number of classes.
+        output_stride (int): output stride for deeplab.
+        pretrained_backbone (bool): If True, use the pretrained backbone.
+    """
+    return _load_model('deeplabv3plus_duq', 'mobilenetv2', num_classes, output_stride=output_stride, pretrained_backbone=pretrained_backbone, par=par)
