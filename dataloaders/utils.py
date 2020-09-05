@@ -10,7 +10,6 @@ def decode_seg_map_sequence(label_masks, dataset='pascal'):
     rgb_masks = torch.from_numpy(np.array(rgb_masks).transpose([0, 3, 1, 2]))
     return rgb_masks
 
-
 def decode_segmap(label_mask, dataset, plot=False):
     """Decode segmentation class labels into a color image
     Args:

@@ -63,6 +63,7 @@ class CityscapesDataset(data.Dataset):
 
     def transform_tr(self, sample):
         composed_transforms = transforms.Compose([
+            tr.FixedResize(resize_ratio=self.par.resize_ratio),
             tr.RandomCrop(self.par.base_size, self.par.crop_size, fill=255),
             tr.RandomColorJitter(),
             tr.RandomHorizontalFlip(),

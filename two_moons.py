@@ -46,8 +46,8 @@ class Model_bilinear(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x) # x.shape = batch_size x feature_size
-        print('x.shape = {}'.format(x.shape))
-        assert 1==2
+        #print('x.shape = {}'.format(x.shape))
+        #assert 1==2
 
         # i is batch, m is embedding_size, n is num_classes (classes)
         x = torch.einsum('ij,mnj->imn', x, self.W)
@@ -111,15 +111,17 @@ def calc_gradient_penalty(x, y_pred):
             create_graph=True,
         )[0]
 
-
+    print('x.shape = {}'.format(x.shape))
+    print('y_pred.shape = {}'.format(y_pred.shape))
+    print('A gradients.shape = {}'.format(gradients.shape))
     gradients = gradients.flatten(start_dim=1)
-    
+    print('B gradients.shape = {}'.format(gradients.shape))
     # L2 norm
     grad_norm = gradients.norm(2, dim=1)
-
+    print('C gradients.shape = {}'.format(gradients.shape))
     # Two sided penalty
     gradient_penalty = ((grad_norm - 1) ** 2).mean()
-    
+    print('D gradients.shape = {}'.format(gradients.shape))
     # One sided penalty - down
 #     gradient_penalty = F.relu(grad_norm - 1).mean()
 
@@ -257,6 +259,7 @@ with torch.no_grad():
 
 z = confidence.reshape(xx.shape)
 
+'''
 plt.figure()
 plt.contourf(x_lin, y_lin, z, cmap='cividis')
 
@@ -264,6 +267,6 @@ plt.contourf(x_lin, y_lin, z, cmap='cividis')
 plt.scatter(X_vis[mask,0], X_vis[mask,1])
 plt.scatter(X_vis[~mask,0], X_vis[~mask,1])
 plt.show()
-
+'''
 
 

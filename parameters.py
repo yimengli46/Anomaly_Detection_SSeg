@@ -7,18 +7,18 @@ class Parameters(object):
 		self.dataset = 'cityscapes' # 'pascal', 'coco', 'cityscapes'
 		self.checkname = 'deeplab_duq'
 		self.use_sbd = True
-		self.workers = 4
-		self.base_size = 1024
-		self.crop_size = 768
-		self.resize_ratio = 1.0
+		#self.workers = 4
+		self.base_size = 512 #1024
+		self.crop_size = 384 #768
+		self.resize_ratio = 0.5
 		self.sync_bn = False
 		self.freeze_bn = False
 		self.loss_type = 'bce' # 'ce', 'focal'
 
 		# training hyper params
-		self.epochs = 200
-		self.batch_size = 2
-		self.test_batch_size = 2
+		self.epochs = 500
+		self.batch_size = 8
+		self.test_batch_size = 4
 		self.use_balanced_weights = False
 
 		# optimizer params
@@ -43,7 +43,7 @@ class Parameters(object):
 		self.duq_centroid_size = 256
 		self.duq_model_output_size = 64
 		self.duq_learning_rate = 0.05
-		self.duq_l_gradient_penalty = 0.0 #0.5
+		self.duq_l_gradient_penalty = 0.5 #0.5
 		self.duq_gamma = 0.999
 		self.duq_length_scale = 0.1
 		self.duq_weight_decay = 5e-4

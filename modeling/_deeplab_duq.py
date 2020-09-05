@@ -41,7 +41,7 @@ class DeepLabHeadV3Plus_duq(nn.Module):
         )
         nn.init.kaiming_normal_(self.W, nonlinearity="relu")
 
-        self.register_buffer('N', torch.zeros(num_classes) + 13)
+        self.register_buffer('N', torch.ones(num_classes)*par.duq_model_output_size)
         self.register_buffer(
             'm', torch.normal(torch.zeros(par.duq_centroid_size, num_classes), 0.05)
         )
@@ -61,7 +61,7 @@ class DeepLabHeadV3Plus_duq(nn.Module):
 
     def forward(self, feature):
         low_level_feature = self.project( feature['low_level'] )
-        print('feature[out].shape = {}'.format(feature['out'].shape))
+        #print('feature[out].shape = {}'.format(feature['out'].shape))
         output_feature = self.aspp(feature['out'])
         output_feature = F.interpolate(output_feature, size=low_level_feature.shape[2:], mode='bilinear', align_corners=False)
         temp_z = torch.cat([low_level_feature, output_feature], dim=1)
@@ -99,14 +99,13 @@ class DeepLabHeadV3Plus_duq(nn.Module):
     def update_embeddings(self, feature, y_targets):
 
         #input y_targets.shape = batch_size x 192 x 192, dtype=long
-        y_targets = y_targets.flatten() #y_targets.shape = (batch_size x 192 x 192) x 1
+        y_targets = y_targets.reshape(-1, 1).long().squeeze(1) #y_targets.shape = (batch_size x 192 x 192) x 1
         idx_unignored = (y_targets < 255)
         y_targets = y_targets[idx_unignored]
-        y_targets = F.one_hot(y_targets, self.num_classes) # y_targets.shape = (?) x num_classes
-        y_targets = y_targets.float()
+        y_targets = F.one_hot(y_targets, self.num_classes).float() # y_targets.shape = (?) x num_classes
         #print('y_targets.shape = {}'.format(y_targets.shape)) 
 
-        self.N = self.gamma * self.N + (1 - self.gamma) * y_targets.sum(0)
+        self.N = self.gamma * self.N + (1 - self.gamma) * y_targets.sum(0) # Eq. 4
 
         # get features of each datapoint and name the variable z
         low_level_feature = self.project( feature['low_level'] )

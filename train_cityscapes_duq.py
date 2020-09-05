@@ -73,28 +73,28 @@ for epoch in range(par.epochs):
         print('epoch = {}, iter_num = {}'.format(epoch, iter_num))
 
         model.train()
+        optimizer.zero_grad()
 
         images, targets = sample['image'], sample['label']
-        #print('images = {}'.format(images.shape))
-        #print('targets = {}'.format(targets.shape))
+        print('images = {}'.format(images.shape))
+        print('targets = {}'.format(targets.shape))
 
         # for update embedding
-        targets_copy = targets.clone().numpy()
-        downsampled_targets = resize_targets_img(par, targets_copy)
+        downsampled_targets = resize_targets_img(par, targets.clone().numpy())
         downsampled_targets = torch.tensor(downsampled_targets).long().cuda()
         #print('downsampled_targets.shape = {}'.format(downsampled_targets.shape))
 
         images, targets = images.cuda(), targets.cuda()
 
-        '''
-        if par.duq_l_gradient_penalty > 0:
+        #'''
+        if par.duq_l_gradient_penalty > 0.0:
             images.requires_grad_(True)
-        '''
+        #'''
 
         #================================================ compute loss =============================================
         output, y_pred, z = model(images) #output.shape = batch_size x num_classes x 768 x 768
 
-        targets_copy = targets.flatten().long()
+        targets_copy = targets.reshape(-1, 1).long().squeeze(1)
         idx_unignored = (targets_copy < 255)
         targets_copy = targets_copy[idx_unignored]
         targets_copy = F.one_hot(targets_copy, num_class).float()
@@ -105,13 +105,19 @@ for epoch in range(par.epochs):
         loss = criterion(output_copy, targets_copy)
         print('loss = {:.5f}'.format(loss.item()))
 
-        if par.duq_l_gradient_penalty > 0:
-            gradient_penalty = par.duq_l_gradient_penalty * 0.01 * calc_gradient_penalty(z, y_pred)
+        if par.duq_l_gradient_penalty > 0.0:
+            #y_pred = y_pred.permute(0, 2, 3, 1).reshape(-1, num_class)
+            gradient_penalty = par.duq_l_gradient_penalty * 0.0001 * calc_gradient_penalty(images, output_copy)
             loss += gradient_penalty
 
         #================================================= compute gradient =================================================
-        optimizer.zero_grad()
         loss.backward()
+        '''
+        # because of the gradient penalty is too big, try to clip the gradient here
+        if par.duq_l_gradient_penalty > 0.0:
+            for param in model.parameters():
+                param.grad.data.clamp_(-1, 1)
+        '''
         optimizer.step()
 
         images.requires_grad_(False)
@@ -126,9 +132,11 @@ for epoch in range(par.epochs):
         writer.add_scalar('train/total_loss_iter', loss.item(), iter_num + num_img_tr * epoch)
 
         # Show 10 * 3 inference results each epoch
+        '''
         if iter_num % (num_img_tr // 10) == 0:
             global_step = iter_num + num_img_tr * epoch
             summary.visualize_image(writer, par.dataset, images, targets, output, global_step)
+        '''
 
     writer.add_scalar('train/total_loss_epoch', train_loss, epoch)
     print('[Epoch: %d, numImages: %5d]' % (epoch, iter_num * par.batch_size + images.data.shape[0]))
@@ -143,7 +151,7 @@ for epoch in range(par.epochs):
         for iter_num, sample in enumerate(dataloader_val):
             print('epoch = {}, iter_num = {}'.format(epoch, iter_num))
             images, targets = sample['image'], sample['label']
-            #print('images = {}'.format(images))
+            #print('images = {}'.format(images.shape))
             #print('targets = {}'.format(targets))
             images, targets = images.cuda(), targets.cuda()
 
@@ -151,7 +159,7 @@ for epoch in range(par.epochs):
             with torch.no_grad():
                 output, _, _ = model(images) #output.shape = batch_size x num_classes x 768 x 768
 
-                targets_copy = targets.flatten().long()
+                targets_copy = targets.reshape(-1, 1).long().squeeze(1)
                 idx_unignored = (targets_copy < 255)
                 targets_copy = targets_copy[idx_unignored]
                 targets_copy = F.one_hot(targets_copy, num_class).float()

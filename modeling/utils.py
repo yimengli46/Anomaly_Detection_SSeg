@@ -105,18 +105,24 @@ def calc_gradients_input(x, y_pred):
         grad_outputs=torch.ones_like(y_pred),
         create_graph=True,
     )[0]
-
+    #print('A gradients.shape = {}'.format(gradients.shape))
     gradients = gradients.flatten(start_dim=1)
-
+    #print('B gradients.shape = {}'.format(gradients.shape))
     return gradients
 
 def calc_gradient_penalty(x, y_pred):
     gradients = calc_gradients_input(x, y_pred)
+    print('C gradients.shape = {}'.format(gradients.shape))
+    print('gradients = {}'.format(gradients))
 
     # L2 norm
     grad_norm = gradients.norm(2, dim=1)
-
+    print('D grad_norm.shape = {}'.format(grad_norm.shape))
+    print('grad_norm = {}'.format(grad_norm))
+    
     # Two sided penalty
     gradient_penalty = ((grad_norm - 1) ** 2).mean()
-
+    print('E gradient_penalty.shape = {}'.format(gradient_penalty.shape))
+    print('gradient_penalty = {}'.format(gradient_penalty))
     return gradient_penalty
+
