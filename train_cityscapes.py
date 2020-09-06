@@ -6,7 +6,7 @@ from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
 from utils.lr_scheduler import PolyLR
-from modeling.utils import set_bn_momentum
+from modeling.utils import set_bn_momentum, calc_gradient_penalty
 
 from parameters import Parameters
 from dataloaders.datasets import cityscapes
@@ -32,8 +32,8 @@ dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle
 #================================================================================================================================
 # Define network
 #model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
-#model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
-model = deeplabv3plus_resnet50(num_classes=num_class, output_stride=par.out_stride).cuda()
+model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
+#model = deeplabv3plus_resnet50(num_classes=num_class, output_stride=par.out_stride).cuda()
 
 set_bn_momentum(model.backbone, momentum=0.01)
 
@@ -76,13 +76,22 @@ for epoch in range(par.epochs):
         #print('images = {}'.format(images.shape))
         #print('targets = {}'.format(targets.shape))
         images, targets = images.cuda(), targets.cuda()
+
+        images.requires_grad_(True)
         
         #================================================ compute loss =============================================
         output = model(images)
+        print('output.shape = {}'.format(output.shape))
+
         loss = criterion(output, targets)
 
         #================================================= compute gradient =================================================
         optimizer.zero_grad()
+
+        gradient_pentalty = calc_gradient_penalty(images, output)
+        assert 1==2
+
+
         loss.backward()
         optimizer.step()
         train_loss += loss.item()

@@ -17,7 +17,7 @@ class Parameters(object):
 
 		# training hyper params
 		self.epochs = 200
-		self.batch_size = 18
+		self.batch_size = 8#18
 		self.test_batch_size = 16
 		self.use_balanced_weights = False
 
@@ -30,7 +30,7 @@ class Parameters(object):
 		self.gpu_id = '1'
 
 		# checking point
-		self.resume = None
+		self.resume = None #'run/cityscapes/deeplab_resnet/experiment_5/checkpoint.pth.tar' #None
 		self.checkname = 'deeplab_{}'.format(self.backbone)
 
 		# finetuning pre-trained models
