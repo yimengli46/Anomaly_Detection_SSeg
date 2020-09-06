@@ -99,6 +99,7 @@ for epoch in range(par.epochs):
         targets_copy = targets_copy[idx_unignored]
         targets_copy = F.one_hot(targets_copy, num_class).float()
 
+        #print('output.shape = {}'.format(output.shape))
         output_copy = output.permute(0, 2, 3, 1).reshape(-1, num_class)
         output_copy = output_copy[idx_unignored]
 
@@ -106,18 +107,12 @@ for epoch in range(par.epochs):
         print('loss = {:.5f}'.format(loss.item()))
 
         if par.duq_l_gradient_penalty > 0.0:
-            #y_pred = y_pred.permute(0, 2, 3, 1).reshape(-1, num_class)
-            gradient_penalty = par.duq_l_gradient_penalty * 0.0001 * calc_gradient_penalty(images, output_copy)
+            gradient_penalty = par.duq_l_gradient_penalty * calc_gradient_penalty(images, output_copy, par)
+            print('gradient_penalty = {}'.format(gradient_penalty))
             loss += gradient_penalty
-
+        #assert 1==2
         #================================================= compute gradient =================================================
         loss.backward()
-        '''
-        # because of the gradient penalty is too big, try to clip the gradient here
-        if par.duq_l_gradient_penalty > 0.0:
-            for param in model.parameters():
-                param.grad.data.clamp_(-1, 1)
-        '''
         optimizer.step()
 
         images.requires_grad_(False)
