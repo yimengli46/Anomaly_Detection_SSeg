@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from modeling.models import deeplabv3plus_duq_mobilenet
+from modeling.models import deeplabv3plus_duq_mobilenet, deeplabv3plus_duq_resnet50
 from utils.loss import SegmentationLosses
 from utils.saver import Saver
 from utils.summaries import TensorboardSummary
@@ -33,7 +33,8 @@ dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle
 
 #================================================================================================================================
 # Define network
-model = deeplabv3plus_duq_mobilenet(num_classes=num_class, output_stride=par.out_stride, par=par).cuda()
+#model = deeplabv3plus_duq_mobilenet(num_classes=num_class, output_stride=par.out_stride, par=par).cuda()
+model = deeplabv3plus_duq_resnet50(num_classes=num_class, output_stride=par.out_stride, par=par).cuda()
 
 set_bn_momentum(model.backbone, momentum=0.01)
 
@@ -76,8 +77,7 @@ for epoch in range(par.epochs):
         optimizer.zero_grad()
 
         images, targets = sample['image'], sample['label']
-        print('images = {}'.format(images.shape))
-        print('targets = {}'.format(targets.shape))
+        print('images = {}, targets = {}'.format(images.shape, targets.shape))
 
         # for update embedding
         downsampled_targets = resize_targets_img(par, targets.clone().numpy())
@@ -107,8 +107,8 @@ for epoch in range(par.epochs):
         print('loss = {:.5f}'.format(loss.item()))
 
         if par.duq_l_gradient_penalty > 0.0:
-            gradient_penalty = par.duq_l_gradient_penalty * calc_gradient_penalty(images, output_copy, par)
-            print('gradient_penalty = {}'.format(gradient_penalty))
+            gradient_penalty = par.duq_l_gradient_penalty * 0.1 * calc_gradient_penalty(images, output_copy, par)
+            print('gradient_penalty = {:.5f}'.format(gradient_penalty))
             loss += gradient_penalty
         #assert 1==2
         #================================================= compute gradient =================================================
@@ -198,7 +198,7 @@ for epoch in range(par.epochs):
                 'best_pred': best_pred,
             }, is_best)
 
-trainer.writer.close()
+writer.close()
 
 
 
