@@ -8,4 +8,5 @@ modeling/backbone/__pycache__/
 modeling/sync_batchnorm/__pycache__/
 utils/__pycache__/
 run_train_sseg.sh
+run_train_duq.sh
 
