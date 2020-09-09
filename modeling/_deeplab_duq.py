@@ -86,14 +86,14 @@ class DeepLabHeadV3Plus_duq(nn.Module):
         #print('y_pred.shape = {}'.format(y_pred.shape))
 
         # z is not necessary
-        '''
+        #'''
         z = z.reshape(N, H, W, -1)
         assert z.shape[3] == FEATURE_SIZE
         z = z.permute(0, 3, 1, 2) #z.shape = batch_size x 256 x 192 x 192
         #print('z.shape = {}'.format(z.shape))
-        '''
+        #'''
 
-        return y_pred, temp_z
+        return y_pred, z
 
 #'''
     def update_embeddings(self, feature, y_targets):
