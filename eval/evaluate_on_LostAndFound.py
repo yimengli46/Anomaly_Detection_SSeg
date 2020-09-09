@@ -1,14 +1,13 @@
 import numpy as np
 from utils import compute_iou
 import cv2
-import matplotlib.pyplot as plt 
 
-#result_base_folder = '/home/yimeng/ARGO_scratch/detectron2/my_projects/BayesianSSeg/visualization_lostAndFound'
-result_base_folder = '/home/yimeng/work/detecting-the-unexpected/visualization_lostAndFound'
-dataset_base_folder = '/home/yimeng/Datasets/{}'.format('Lost_and_Found')
+result_base_folder = 'results/mobileNet_lostAndFound' #'results/resNet_lostAndFound_2' #'results/mobileNet_lostAndFound'
+dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('Lost_and_Found')
+mode = 'deeplab'
 
 #uncertainty_threshold_list = [x/10.0 for x in range(5, 50)]
-uncertainty_threshold_list = [x/100.0 for x in range(0, 100, 5)]
+uncertainty_threshold_list = [x/100.0 for x in range(5, 55, 5)]
 
 big_outlier_list = [2, 3, 4, 7, 10, 11, 15, 16, 25, 27, 31, 33, 34, 35, 38, 40, 45, 46, 48, 50, 51, 54, 57, 60, 61, 63, 65, 
 	68, 71, 72, 74, 76, 83, 84, 85, 86, 91, 93, 95]
@@ -25,11 +24,15 @@ for uncertainty_threshold in uncertainty_threshold_list:
 
 		result = np.load('{}/{}_result.npy'.format(result_base_folder, img_id), allow_pickle=True).item()
 		uncertainty_result = result['uncertainty']
-		uncertainty_result = np.where(uncertainty_result < uncertainty_threshold, 0, 1)
+		uncertainty_result[397:, :] = 1.0
+		if mode == 'deeplab':
+			uncertainty_result = np.where(uncertainty_result < uncertainty_threshold, 1, 0)
+		else:
+			uncertainty_result = np.where(uncertainty_result < uncertainty_threshold, 0, 1)
 
 		# in case the result is got from downsampled images
 		h, w = uncertainty_result.shape
-		label_img = cv2.resize(label_img, (w,h))
+		label_img = cv2.resize(label_img, (w,h), interpolation=cv2.INTER_NEAREST)
 
 		mIoU, all_IoU, idx_not_zero = compute_iou(label_img, uncertainty_result, 2)
 		# only take the IoU on the outlier, rather than the background
