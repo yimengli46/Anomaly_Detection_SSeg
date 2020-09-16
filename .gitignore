@@ -9,4 +9,6 @@ modeling/sync_batchnorm/__pycache__/
 utils/__pycache__/
 run_train_sseg.sh
 run_train_duq.sh
-
+eval/
+results_deeplab/
+results_duq/
