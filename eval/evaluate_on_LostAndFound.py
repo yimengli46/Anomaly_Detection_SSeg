@@ -2,9 +2,10 @@ import numpy as np
 from utils import compute_iou
 import cv2
 
-result_base_folder = 'results/mobileNet_lostAndFound' #'results/resNet_lostAndFound_2' #'results/mobileNet_lostAndFound'
+result_base_folder = 'results/resNet_lostAndFound' #'results/resNet_lostAndFound_2' #'results/mobileNet_lostAndFound'
 dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('Lost_and_Found')
 mode = 'deeplab'
+thresh_2_3 = 0.1
 
 #uncertainty_threshold_list = [x/10.0 for x in range(5, 50)]
 uncertainty_threshold_list = [x/100.0 for x in range(5, 55, 5)]
@@ -24,11 +25,20 @@ for uncertainty_threshold in uncertainty_threshold_list:
 
 		result = np.load('{}/{}_result.npy'.format(result_base_folder, img_id), allow_pickle=True).item()
 		uncertainty_result = result['uncertainty']
-		uncertainty_result[397:, :] = 1.0
-		if mode == 'deeplab':
-			uncertainty_result = np.where(uncertainty_result < uncertainty_threshold, 1, 0)
-		else:
-			uncertainty_result = np.where(uncertainty_result < uncertainty_threshold, 0, 1)
+
+
+		mask = uncertainty_result < uncertainty_threshold
+
+		all_pred = result['all_pred']
+		diff_2_3 = all_pred[17, :, :] - all_pred[16, :, :]
+		mask2 = diff_2_3 < thresh_2_3
+
+		final_mask = mask & mask2
+
+		uncertainty_result[:, :] = 0
+		uncertainty_result[final_mask] = 1
+
+		uncertainty_result[397:, :] = 0
 
 		# in case the result is got from downsampled images
 		h, w = uncertainty_result.shape

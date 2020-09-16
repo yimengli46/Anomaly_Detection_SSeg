@@ -95,7 +95,7 @@ for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
 	X_norm = (X_tsne - x_min) / (x_max - x_min)
 
 	# define the colormap
-	cmap = plt.cm.gist_ncar
+	cmap = plt.cm.nipy_spectral
 	# extract all colors from the .jet map
 	cmaplist = [cmap(i) for i in range(cmap.N)]
 	# create the new map

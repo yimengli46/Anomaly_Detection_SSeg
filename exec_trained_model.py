@@ -9,10 +9,10 @@ from dataloaders.datasets import LostAndFound, RoadAnomaly
 from torch.utils.data import DataLoader
 
 mode = 'resNet' #'resNet', 'mobileNet'
-saved_folder = 'results/{}'.format('resNet_roadAnomaly_2') #'results/resNet_lostAndFound_2', 'mobileNet_lostAndFound', mobileNet_roadAnomaly
+saved_folder = 'results/{}'.format('resNet_lostAndFound') #'results/resNet_lostAndFound_2', 'mobileNet_lostAndFound', mobileNet_roadAnomaly
 num_class = 19
 
-dataset = 'RoadAnomaly' #LostAndFound
+dataset = 'LostAndFound' #LostAndFound, RoadAnomaly
 
 if dataset == 'LostAndFound':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/Lost_and_Found'
@@ -29,7 +29,7 @@ par.duq_model_output_size = 128
 '''
 
 #'''ResNet
-par.resume = 'run/cityscapes/deeplab_duq/experiment_5/checkpoint.pth.tar'
+par.resume = 'run/cityscapes/deeplab_duq/experiment_4/checkpoint.pth.tar'
 par.duq_model_output_size = 64
 #'''
 
@@ -78,9 +78,13 @@ if par.resume is not None:
             class_prediction = np.argmax(pred, axis=0)
             uncertainty_mat = np.amax(pred, axis=0)
 
+            pred = np.sort(pred, axis=0)
+            print('pred.shape = {}'.format(pred.shape))
+
             result = {}
             result['sseg'] = class_prediction
             result['uncertainty'] = uncertainty_mat
+            #result['all_pred'] = pred
             np.save('{}/{}_result.npy'.format(saved_folder, count), result)
             count += 1
 
