@@ -53,7 +53,7 @@ class DeepLabHeadV3Plus(nn.Module):
 
         # for feature extraction
         z = self.classifier[0](all_feature)
-        print('z.shape = {}'.format(z.shape))
+        #print('z.shape = {}'.format(z.shape))
 
         return x, z
     

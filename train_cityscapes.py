@@ -6,10 +6,10 @@ from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
 from utils.lr_scheduler import PolyLR
-from modeling.utils import set_bn_momentum, calc_gradient_penalty
+from modeling.utils import set_bn_momentum
 
 from parameters import Parameters
-from dataloaders.datasets import cityscapes
+from dataloaders.datasets import cityscapes, cityscapes_fewer_classes
 from torch.utils.data import DataLoader
 import torch
 
@@ -22,18 +22,17 @@ summary = TensorboardSummary(saver.experiment_dir)
 writer = summary.create_summary()
 
 #=========================================================== Define Dataloader ==================================================
-dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
+#dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
+dataset_train = cityscapes_fewer_classes.CityscapesDataset_fewer(par, dataset_dir='data/cityscapes', split='train')
 num_class = dataset_train.NUM_CLASSES
 dataloader_train = DataLoader(dataset_train, batch_size=par.batch_size, shuffle=True, num_workers=int(par.batch_size/2))
 
-dataset_val = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='val')
+dataset_val = cityscapes_fewer_classes.CityscapesDataset_fewer(par, dataset_dir='data/cityscapes', split='val')
 dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
 
 #================================================================================================================================
 # Define network
-#model = deeplabv3plus_resnet101(num_classes=num_class, output_stride=par.out_stride).cuda()
-model = deeplabv3plus_mobilenet(num_classes=num_class, output_stride=par.out_stride).cuda()
-#model = deeplabv3plus_resnet50(num_classes=num_class, output_stride=par.out_stride).cuda()
+model = deeplabv3plus_resnet50(num_classes=num_class, output_stride=par.out_stride).cuda()
 
 set_bn_momentum(model.backbone, momentum=0.01)
 
@@ -76,21 +75,15 @@ for epoch in range(par.epochs):
         #print('images = {}'.format(images.shape))
         #print('targets = {}'.format(targets.shape))
         images, targets = images.cuda(), targets.cuda()
-
-        images.requires_grad_(True)
         
         #================================================ compute loss =============================================
-        output = model(images)
-        print('output.shape = {}'.format(output.shape))
+        output, _ = model(images)
+        #print('output.shape = {}'.format(output.shape))
 
         loss = criterion(output, targets)
 
         #================================================= compute gradient =================================================
         optimizer.zero_grad()
-
-        gradient_pentalty = calc_gradient_penalty(images, output)
-        assert 1==2
-
 
         loss.backward()
         optimizer.step()
@@ -122,7 +115,7 @@ for epoch in range(par.epochs):
 
             #========================== compute loss =====================
             with torch.no_grad():
-                output = model(images)
+                output, _ = model(images)
             loss = criterion(output, targets)
 
             test_loss += loss.item()
