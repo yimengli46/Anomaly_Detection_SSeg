@@ -9,7 +9,7 @@ from utils.lr_scheduler import PolyLR
 from modeling.utils import set_bn_momentum, calc_gradient_penalty
 
 from parameters import Parameters
-from dataloaders.datasets import cityscapes
+from dataloaders.datasets import cityscapes, cityscapes_fewer_classes
 from torch.utils.data import DataLoader
 import torch
 from utils.my_utils import resize_targets_img
@@ -24,11 +24,12 @@ summary = TensorboardSummary(saver.experiment_dir)
 writer = summary.create_summary()
 
 #=========================================================== Define Dataloader ==================================================
-dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
+#dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
+dataset_train = cityscapes_fewer_classes.CityscapesDataset_fewer(par, dataset_dir='data/cityscapes', split='train')
 num_class = dataset_train.NUM_CLASSES
 dataloader_train = DataLoader(dataset_train, batch_size=par.batch_size, shuffle=True, num_workers=int(par.batch_size/2))
 
-dataset_val = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='val')
+dataset_val = cityscapes_fewer_classes.CityscapesDataset_fewer(par, dataset_dir='data/cityscapes', split='val')
 dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
 
 #================================================================================================================================
@@ -77,7 +78,7 @@ for epoch in range(par.epochs):
         optimizer.zero_grad()
 
         images, targets = sample['image'], sample['label']
-        print('images = {}, targets = {}'.format(images.shape, targets.shape))
+        #print('images = {}, targets = {}'.format(images.shape, targets.shape))
 
         # for update embedding
         downsampled_targets = resize_targets_img(par, targets.clone().numpy())
@@ -107,7 +108,7 @@ for epoch in range(par.epochs):
         print('loss = {:.5f}'.format(loss.item()))
 
         if par.duq_l_gradient_penalty > 0.0:
-            gradient_penalty = par.duq_l_gradient_penalty * 0.1 * calc_gradient_penalty(images, output_copy, par)
+            gradient_penalty = par.duq_l_gradient_penalty * 0.001 * calc_gradient_penalty(images, output_copy, par)
             print('gradient_penalty = {:.5f}'.format(gradient_penalty))
             loss += gradient_penalty
         #assert 1==2

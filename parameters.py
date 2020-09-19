@@ -17,8 +17,8 @@ class Parameters(object):
 
 		# training hyper params
 		self.epochs = 500
-		self.batch_size = 6
-		self.test_batch_size = 4
+		self.batch_size = 2
+		self.test_batch_size = 2
 		self.use_balanced_weights = False
 
 		# optimizer params
@@ -40,8 +40,8 @@ class Parameters(object):
 		self.no_val = False
 
 		# duq params
-		self.duq_centroid_size = 256
-		self.duq_model_output_size = 64
+		self.duq_centroid_size = 512
+		self.duq_model_output_size = 128
 		self.duq_learning_rate = 0.05
 		self.duq_l_gradient_penalty = 0.5 #0.5
 		self.duq_gamma = 0.999
