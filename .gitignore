@@ -19,4 +19,6 @@ eval/merge_det_sseg/
 eval/object_embedding_tsne_Cityscapes_and_LostAndFound_one_point/
 eval/results/
 eval/trained_model/
-results/
+results_deeplab/
+results_duq/
+

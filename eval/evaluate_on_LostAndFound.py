@@ -25,20 +25,9 @@ for uncertainty_threshold in uncertainty_threshold_list:
 
 		result = np.load('{}/{}_result.npy'.format(result_base_folder, img_id), allow_pickle=True).item()
 		uncertainty_result = result['uncertainty']
+		uncertainty_result[397:, :] = 1.0
 
-
-		mask = uncertainty_result < uncertainty_threshold
-
-		all_pred = result['all_pred']
-		diff_2_3 = all_pred[17, :, :] - all_pred[16, :, :]
-		mask2 = diff_2_3 < thresh_2_3
-
-		final_mask = mask & mask2
-
-		uncertainty_result[:, :] = 0
-		uncertainty_result[final_mask] = 1
-
-		uncertainty_result[397:, :] = 0
+		uncertainty_result = np.where(uncertainty_result < uncertainty_threshold, 1, 0)		
 
 		# in case the result is got from downsampled images
 		h, w = uncertainty_result.shape
