@@ -8,7 +8,7 @@ from utils import apply_color_map
 
 #==================================================set up parameters===================================================================
 dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('RoadAnomaly')
-result_folder = 'results/resNet_roadAnomaly' #'results/resNet_roadAnomaly', 'results/mobileNet_roadAnomaly'
+result_folder = 'results_duq/resNet_roadAnomaly' #'results/resNet_roadAnomaly', 'results/mobileNet_roadAnomaly'
 
 #===================================================== process output ===============================================================
 for i in range(60):

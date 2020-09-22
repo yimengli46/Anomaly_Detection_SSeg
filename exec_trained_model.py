@@ -5,32 +5,29 @@ from parameters import Parameters
 import torch
 import torch.nn.functional as F
 from PIL import Image
-from dataloaders.datasets import LostAndFound, RoadAnomaly
+from dataloaders.datasets import LostAndFound, RoadAnomaly, Fishyscapes
 from torch.utils.data import DataLoader
 
 mode = 'resNet' #'resNet', 'mobileNet'
-saved_folder = 'results/{}'.format('resNet_lostAndFound') #'results/resNet_lostAndFound_2', 'mobileNet_lostAndFound', mobileNet_roadAnomaly
-num_class = 19
+saved_folder = 'results_duq/{}'.format('resNet_Fishyscapes') # resNet_lostAndFound, resNet_roadAnomaly
+num_class = 8
 
-dataset = 'LostAndFound' #LostAndFound, RoadAnomaly
+dataset = 'Fishyscapes' #LostAndFound, RoadAnomaly, Fishyscapes
 
 if dataset == 'LostAndFound':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/Lost_and_Found'
 elif dataset == 'RoadAnomaly':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/RoadAnomaly'
+elif dataset == 'Fishyscapes':
+    dataset_folder = '/projects/kosecka/yimeng/Datasets/Fishyscapes_Static'
 
 #====================================================== change the parameters============================================================
 par = Parameters()
 par.test_batch_size = 2
 
-'''mobileNet
-par.resume = 'run/cityscapes/deeplab_duq/experiment_1/checkpoint.pth.tar'
-par.duq_model_output_size = 128
-'''
-
 #'''ResNet
-par.resume = 'run/cityscapes/deeplab_duq/experiment_4/checkpoint.pth.tar'
-par.duq_model_output_size = 64
+par.resume = 'run/cityscapes/deeplab_duq/experiment_5/checkpoint.pth.tar'
+par.duq_model_output_size = 128
 #'''
 
 #=========================================================== Define Dataloader ==================================================
@@ -39,6 +36,9 @@ if dataset == 'LostAndFound':
     dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
 elif dataset == 'RoadAnomaly':
     dataset_val = RoadAnomaly.RoadAnomaly(par, dataset_dir=dataset_folder)
+    dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
+elif dataset == 'Fishyscapes':
+    dataset_val = Fishyscapes.Fishyscapes(par, dataset_dir=dataset_folder)
     dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
 
 #================================================================================================================================

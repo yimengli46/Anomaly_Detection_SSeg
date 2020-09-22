@@ -5,10 +5,11 @@ import cv2
 from sklearn import manifold, datasets
 import random
 
-result_base_folder = 'results/resNet_features'
-saved_folder = 'results/resNet_features_vis'
+result_base_folder = 'results_duq/resNet_features'
+saved_folder = 'results_duq/resNet_features_vis'
+feature_dim = 128
 
-num_classes = 19
+num_classes = 8
 
 id_cityscapes = 1
 id_lostAndFound = 45 #4, 27
@@ -17,7 +18,7 @@ random.seed(0)
 
 for id_cityscapes in range(10):
 	result_cityscapes = np.load('{}/{}_cityscapes.npy'.format(result_base_folder, id_cityscapes), allow_pickle=True).item()
-	features = np.transpose(result_cityscapes['feature'], (1, 2, 0)).reshape((-1, 64))
+	features = np.transpose(result_cityscapes['feature'], (1, 2, 0)).reshape((-1, feature_dim))
 	labels = result_cityscapes['label'].flatten()
 	print('features.shape = {}, labels.shape = {}'.format(features.shape, labels.shape))
 	features = features[labels < 255]
@@ -51,12 +52,12 @@ all_labels = labels
 
 print('************all_features.shape = {}, all_labels.shape = {}************'.format(all_features.shape, all_labels.shape))
 
-for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
+for id_lostAndFound in [2, 4, 10, 16, 27, 38, 45, 50, 51, 61, 65, 68, 74, 76, 83, 84, 95]:
 	features = all_features
 	labels = all_labels
 
 	result_lostAndFound =  np.load('{}/{}_LostAndFound.npy'.format(result_base_folder, id_lostAndFound), allow_pickle=True).item()
-	features_Outlier = np.transpose(result_lostAndFound['feature'], (1, 2, 0)).reshape((-1, 64))
+	features_Outlier = np.transpose(result_lostAndFound['feature'], (1, 2, 0)).reshape((-1, feature_dim))
 	labels_Outlier = result_lostAndFound['label'].flatten()
 
 	features_Outlier = features_Outlier[labels_Outlier==1]
@@ -72,10 +73,15 @@ for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
 	labels   = np.concatenate([labels, labels_Outlier], axis=0)
 
 	#==================================================================================================================================
+	'''
 	thing_list = ['road', 'sidewalk', 'building', 'wall', 'fence', \
 		'pole', 'traffic_light', 'traffic_sign', 'vegetation', 'terrain', \
 		'sky', 'person', 'rider', 'car', 'truck', 'bus', 'train', \
 		'motorcycle', 'bicycle', 'outlier', '--']
+	'''
+
+	thing_list = ['road', 'building', 'pole', 'vegetation', 'sky', 'person', 'car', 'train', 'outlier', '--']
+	assert len(thing_list) == (num_classes+2)
 
 	thing_map = {}
 	for idx, name in enumerate(thing_list):
@@ -95,7 +101,7 @@ for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
 	X_norm = (X_tsne - x_min) / (x_max - x_min)
 
 	# define the colormap
-	cmap = plt.cm.nipy_spectral
+	cmap = plt.cm.gist_ncar
 	# extract all colors from the .jet map
 	cmaplist = [cmap(i) for i in range(cmap.N)]
 	# create the new map

@@ -7,19 +7,31 @@ import os
 from utils import apply_color_map
 
 #==================================================set up parameters===================================================================
-dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('Lost_and_Found')
-result_folder = 'results_duq/resNet_lostAndFound' #'results/mobileNet_lostAndFound'
+dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('Fishyscapes_Static')
+result_folder = 'results_duq/resNet_Fishyscapes' #'results/resNet_roadAnomaly', 'results/mobileNet_roadAnomaly'
 
 #===================================================== process output ===============================================================
-for i in range(100):
+for i in range(30):
 	print('i = {}'.format(i))
+
+	np_output = np.load('{}/{}_result.npy'.format(result_folder, i), allow_pickle=True).item()
+	class_prediction = np_output['sseg']
+	uncertainty_mat = np_output['uncertainty']
+
 	rgb_img = cv2.imread('{}/{}.png'.format(dataset_base_folder, i))[:,:,::-1]
 	label_img = cv2.imread('{}/{}_label.png'.format(dataset_base_folder, i), 0)
 
-	np_output = np.load('{}/{}_result.npy'.format(result_folder, i), allow_pickle=True).item()
+	# in case the result is got from downsampled images
+	h, w = uncertainty_mat.shape
+	label_img = cv2.resize(label_img, (w, h), interpolation=cv2.INTER_NEAREST)
 	
-	class_prediction = np_output['sseg']
-	uncertainty_mat = np_output['uncertainty']
+	# ignored pixel has label 2
+	mask_ignored = (label_img == 2)
+	uncertainty_mat[mask_ignored] = 1.0
+	# outlier have label 1, others have label 0
+	#label_img = np.where(label_img != 1, 0, label_img)
+
+	uncertainty_mat = 1 - uncertainty_mat
 
 	colored_prediction_array = apply_color_map(class_prediction)
 
@@ -45,6 +57,8 @@ for i in range(100):
 	fig.tight_layout()
 	fig.savefig('{}/{}_vis.jpg'.format(result_folder, i))
 	plt.close()
+
+
 
 
 

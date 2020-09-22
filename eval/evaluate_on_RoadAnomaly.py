@@ -2,7 +2,7 @@ import numpy as np
 from utils import compute_iou
 import cv2
 
-result_base_folder = 'results/{}'.format('resNet_roadAnomaly_2') #mobileNet_roadAnomaly
+result_base_folder = 'results_duq/{}'.format('resNet_roadAnomaly') #mobileNet_roadAnomaly
 dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('RoadAnomaly')
 mode = 'deeplab'
 

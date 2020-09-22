@@ -10,7 +10,7 @@ class Fishyscapes(data.Dataset):
     def __init__(self, par, dataset_dir):
         self.dataset_dir = dataset_dir
         self.par = par
-        self.img_list = [x for x in range(100)]
+        self.img_list = [x for x in range(30)]
         print("Found {} images".format(len(self.img_list)))
 
     def __len__(self):
