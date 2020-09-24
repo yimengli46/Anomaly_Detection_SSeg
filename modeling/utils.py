@@ -98,21 +98,23 @@ class IntermediateLayerGetter(nn.ModuleDict):
                 out[out_name] = x
         return out
 
-def calc_gradients_input(x, y_pred):
+def calc_gradient_penalty(x, y_pred, par):
+    #print('x.shape = {}'.format(x.shape))
+    N, H, W, C = y_pred.shape
+    #print('y_pred.shape = {}'.format(y_pred.shape))
+    y_pred = y_pred.reshape(N, -1)
+    #print('y_pred.shape = {}'.format(y_pred.shape))
+
     gradients = torch.autograd.grad(
         outputs=y_pred,
         inputs=x,
-        grad_outputs=torch.ones_like(y_pred),
+        grad_outputs=torch.ones_like(y_pred)/(1.0*H*W),
         create_graph=True,
     )[0]
     #print('A gradients.shape = {}'.format(gradients.shape))
     gradients = gradients.flatten(start_dim=1)
-    #print('B gradients.shape = {}'.format(gradients.shape))
-    return gradients
-
-def calc_gradient_penalty(x, y_pred, par):
-    gradients = calc_gradients_input(x, y_pred)
-    gradients = gradients.div(1.0*par.crop_size*par.crop_size)
+    #print('B gradients.shape = {}'.format(gradients.shape))    
+    #gradients = gradients.div(1.0*par.crop_size*par.crop_size)
     #print('C gradients.shape = {}'.format(gradients.shape))
     #print('gradients = {}'.format(gradients))
 
