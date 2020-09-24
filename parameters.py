@@ -22,7 +22,7 @@ class Parameters(object):
 		self.use_balanced_weights = False
 
 		# optimizer params
-		self.lr = 0.0001
+		self.lr = 0.00001
 		self.lr_scheduler = 'poly' # 'poly', 'step', 'cos'
 
 		# cuda, seed and logging
