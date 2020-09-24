@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 import cv2
 
 mode = 'resNet' #'resNet', 'mobileNet'
-saved_folder = 'results_deeplab/{}'.format('resNet_features') 
+saved_folder = 'results_deeplab/{}'.format('resNet_LostAndFound') 
 num_class = 8
 
 dataset = 'LostAndFound' #LostAndFound, RoadAnomaly, cityscapes
@@ -75,31 +75,29 @@ if par.resume is not None:
         #print('targets = {}'.format(targets))
         images = images.cuda()
 
+        N, H, W = targets.shape
+        input_shape = (int(H/2), int(W/2))
+
         #================================================ compute loss =============================================
         with torch.no_grad():
-            output, z = model(images) #output.shape = batch_size x num_classes x H x W
-            print('z.shape = {}'.format(z.shape))
-            H, W = targets.shape[-2:]
-            input_shape = (int(H/2), int(W/2))
-            z_interpolated = F.interpolate(z, size=input_shape, mode='bilinear', align_corners=False)
-            print('interpolated z.shape = {}'.format(z_interpolated.shape))
+            output, _ = model(images) #output.shape = batch_size x num_classes x H x W
+            output = output.data.cpu().numpy()
+            print('output.shape = {}'.format(output.shape))
+
+        for i in range(N):
+            pred = output[i]
+            class_pred = np.argmax(pred, axis=0).astype('uint8')
+            print('class_pred.shape = {}'.format(class_pred.shape))
+            class_pred = cv2.resize(class_pred, input_shape[::-1], cv2.INTER_NEAREST)
             
-            z_interpolated = z_interpolated.data.cpu().numpy()
-            targets = targets.numpy().astype(np.uint8)
+            result = {}
+            result['sseg'] = class_pred
             #assert 1==2
 
-        N, _, _, _ = z.shape
-        for i in range(N):
-            result = {}
-            result['feature'] = z_interpolated[i]
-            target = cv2.resize(targets[i], input_shape[::-1], cv2.INTER_NEAREST)
-            print('target.shape = {}'.format(target.shape))
-            result['label'] = target
-
             if dataset == 'LostAndFound' and count in big_outlier_list:
-                np.save('{}/{}_{}.npy'.format(saved_folder, count, dataset), result)
+                np.save('{}/{}_result.npy'.format(saved_folder, count), result)
             if dataset == 'cityscapes':
-                np.save('{}/{}_{}.npy'.format(saved_folder, count, dataset), result)
+                np.save('{}/{}_result.npy'.format(saved_folder, count), result)
 
             #assert 1==2
             count += 1

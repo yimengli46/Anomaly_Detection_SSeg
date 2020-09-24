@@ -7,9 +7,9 @@ import random
 
 result_base_folder = 'results_deeplab/resNet_features'
 saved_folder = 'results_deeplab/resNet_features_vis'
-color = 'nipy' #nipy, gist
+color = 'gist' #nipy, gist
 
-num_classes = 19
+num_classes = 8
 feature_dim = 256
 id_cityscapes = 1
 id_lostAndFound = 45 #4, 27
@@ -56,9 +56,17 @@ for i in range(num_classes):
 all_features = features
 all_labels = labels
 
+'''
+result = {}
+result['feature'] = all_features
+result['label'] = all_labels
+np.save('{}/all_features_labels.npy'.format(result_base_folder), result)
+assert 1==2
+'''
+
 print('************all_features.shape = {}, all_labels.shape = {}************'.format(all_features.shape, all_labels.shape))
 
-for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
+for id_lostAndFound in [2, 4, 10, 16, 27, 38, 45, 50, 51, 61, 65, 68, 74, 76, 83, 84, 95]:
 	features = all_features
 	labels = all_labels
 
@@ -67,7 +75,7 @@ for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
 	labels_Outlier = result_lostAndFound['label'].flatten()
 
 	features_Outlier = features_Outlier[labels_Outlier==1]
-	labels_Outlier = labels_Outlier[labels_Outlier==1] * 19
+	labels_Outlier = labels_Outlier[labels_Outlier==1] * num_classes
 	assert features_Outlier.shape[0] == labels_Outlier.shape[0]
 
 	chosen_idx = random.sample([x for x in range(features_Outlier.shape[0])], 100)
@@ -79,10 +87,14 @@ for id_lostAndFound in [4, 27, 45, 50, 51, 61]:
 	labels   = np.concatenate([labels, labels_Outlier], axis=0)
 
 	#==================================================================================================================================
+	'''
 	thing_list = ['road', 'sidewalk', 'building', 'wall', 'fence', \
 		'pole', 'traffic_light', 'traffic_sign', 'vegetation', 'terrain', \
 		'sky', 'person', 'rider', 'car', 'truck', 'bus', 'train', \
 		'motorcycle', 'bicycle', 'outlier', '--']
+	'''
+
+	thing_list = ['road', 'building', 'pole', 'vegetation', 'sky', 'person', 'car', 'train', 'outlier', '--']
 
 	thing_map = {}
 	for idx, name in enumerate(thing_list):
