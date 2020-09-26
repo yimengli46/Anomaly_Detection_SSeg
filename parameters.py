@@ -8,16 +8,16 @@ class Parameters(object):
 		self.checkname = 'try_sseg'
 		self.use_sbd = True
 		self.workers = 4
-		self.base_size = 1024
-		self.crop_size = 768
-		self.resize_ratio = 1.0
+		self.base_size = 512 #1024
+		self.crop_size = 384 #768
+		self.resize_ratio = 0.5 #1.0
 		self.sync_bn = False
 		self.freeze_bn = False
 		self.loss_type = 'ce' # 'ce', 'focal'
 
 		# training hyper params
 		self.epochs = 200
-		self.batch_size = 18
+		self.batch_size = 4 #18
 		self.test_batch_size = 16
 		self.use_balanced_weights = False
 
@@ -39,3 +39,6 @@ class Parameters(object):
 		# evaluation option
 		self.eval_interval = 2
 		self.no_val = False
+
+		# duq params
+		self.duq_l_gradient_penalty = 0.1

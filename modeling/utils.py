@@ -19,8 +19,8 @@ class _SimpleSegmentationModel(nn.Module):
         input_shape = x.shape[-2:]
         features = self.backbone(x)
         x, z = self.classifier(features)
-        x = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
-        return x, z
+        x_interpolated = F.interpolate(x, size=input_shape, mode='bilinear', align_corners=False)
+        return x_interpolated, z, x
 
 
 class IntermediateLayerGetter(nn.ModuleDict):
@@ -80,34 +80,31 @@ class IntermediateLayerGetter(nn.ModuleDict):
                 out[out_name] = x
         return out
 
-def calc_gradients_input(x, y_pred):
-        gradients = torch.autograd.grad(
-            outputs=y_pred,
-            inputs=x,
-            grad_outputs=torch.ones_like(y_pred),
-            create_graph=True,
-        )[0]
-
-        gradients = gradients.flatten(start_dim=1)
-
-        return gradients
-
 def calc_gradient_penalty(x, y_pred):
-    _, C, H, W = y_pred.shape
-    gradients = calc_gradients_input(x, y_pred)
-    gradients = gradients.div(1.0*H*W)
-    print('y_pred.shape = {}'.format(y_pred.shape))
-    print('C gradients.shape = {}'.format(gradients.shape))
-    print('gradients = {}'.format(gradients))
+    #print('x.shape = {}'.format(x.shape))
+    N, H, W, C = y_pred.shape
+    #print('y_pred.shape = {}'.format(y_pred.shape))
+    y_pred = y_pred.reshape(N, -1)
+    #print('y_pred.shape = {}'.format(y_pred.shape))
 
+    gradients = torch.autograd.grad(
+        outputs=y_pred,
+        inputs=x,
+        grad_outputs=torch.ones_like(y_pred)/(1.0*H*W),
+        create_graph=True,
+    )[0]
+
+    #print('A gradients.shape = {}'.format(gradients.shape))
+    gradients = gradients.flatten(start_dim=1)
+    #print('B gradients.shape = {}'.format(gradients.shape))
     # L2 norm
     grad_norm = gradients.norm(2, dim=1)
-    print('D grad_norm.shape = {}'.format(grad_norm.shape))
-    print('grad_norm = {}'.format(grad_norm))
+    #print('C grad_norm.shape = {}'.format(grad_norm.shape))
+    #print('grad_norm = {}'.format(grad_norm))
 
     # Two sided penalty
     gradient_penalty = ((grad_norm - 1) ** 2).mean()
-    print('E gradient_penalty.shape = {}'.format(gradient_penalty.shape))
-    print('gradient_penalty = {}'.format(gradient_penalty))
+    #print('D gradient_penalty.shape = {}'.format(gradient_penalty.shape))
+    #print('gradient_penalty = {}'.format(gradient_penalty))
 
     return gradient_penalty
