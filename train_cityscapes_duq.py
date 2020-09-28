@@ -16,7 +16,7 @@ from utils.my_utils import resize_targets_img
 import torch.nn.functional as F
 
 par = Parameters()
-
+print('--------l_gradient_penalty = {}, length_scale = {}, lr = {}---------'.format(par.duq_l_gradient_penalty, par.duq_length_scale, par.lr))
 #=========================================================== Define Saver =======================================================
 saver = Saver(par)
 # Define Tensorboard Summary
@@ -105,13 +105,13 @@ for epoch in range(par.epochs):
         output_copy = output_copy[idx_unignored]
 
         loss = criterion(output_copy, targets_copy)
-        print('loss = {:.5f}'.format(loss.item()))
+        #print('loss = {:.5f}'.format(loss.item()))
 
         if par.duq_l_gradient_penalty > 0.0:
             y_pred = y_pred.permute(0, 2, 3, 1)
 
             gradient_penalty = par.duq_l_gradient_penalty * calc_gradient_penalty(images, y_pred, par)
-            print('gradient_penalty = {:.5f}'.format(gradient_penalty))
+            print('loss = {:.4f}, gradient_penalty = {:.4f}'.format(loss, gradient_penalty))
             loss += gradient_penalty
         #assert 1==2
         #================================================= compute gradient =================================================

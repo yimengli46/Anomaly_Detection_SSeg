@@ -99,6 +99,7 @@ class DeepLabHeadV3Plus_duq(nn.Module):
     def update_embeddings(self, feature, y_targets):
 
         #input y_targets.shape = batch_size x 192 x 192, dtype=long
+        #print('y_targets.shape = {}'.format(y_targets.shape))
         y_targets = y_targets.reshape(-1, 1).long().squeeze(1) #y_targets.shape = (batch_size x 192 x 192) x 1
         idx_unignored = (y_targets < 255)
         y_targets = y_targets[idx_unignored]
@@ -116,6 +117,7 @@ class DeepLabHeadV3Plus_duq(nn.Module):
         # reshape z
         N, FEATURE_SIZE, H, W = z.shape
         z = z.permute(0, 2, 3, 1) # z.shape = batch_size x 192 x 192 x 256
+        #print('z.shape = {}'.format(z.shape))
         z = z.reshape(-1, FEATURE_SIZE) #z.shape = (batch_size x h x w) x 256 = (batch_size x 192 x 192) x 256
         z = z[idx_unignored]
         #print('z.shape = {}'.format(z.shape))
