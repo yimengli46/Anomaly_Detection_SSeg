@@ -12,16 +12,16 @@ class DeepLabHeadV3Plus_duq(nn.Module):
         self.num_classes= num_classes
 
         self.project = nn.Sequential( 
-            nn.Conv2d(low_level_channels, 48, 1, bias=False),
-            nn.BatchNorm2d(48),
+            nn.utils.spectral_norm(nn.Conv2d(low_level_channels, 48, 1, bias=False)),
+            #nn.BatchNorm2d(48),
             nn.ReLU(inplace=True),
         )
 
         self.aspp = ASPP(in_channels, aspp_dilate)
 
         self.classifier = nn.Sequential(
-            nn.Conv2d(304, 256, 3, padding=1, bias=False),
-            nn.BatchNorm2d(256),
+            nn.utils.spectral_norm(nn.Conv2d(304, 256, 3, padding=1, bias=False)),
+            #nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.Conv2d(256, par.duq_model_output_size, 1)
         )

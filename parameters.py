@@ -22,7 +22,7 @@ class Parameters(object):
 		self.use_balanced_weights = False
 
 		# optimizer params
-		self.lr = 0.01
+		self.lr = 0.1
 		self.lr_scheduler = 'poly' # 'poly', 'step', 'cos'
 
 		# cuda, seed and logging
@@ -43,7 +43,7 @@ class Parameters(object):
 		self.duq_centroid_size = 512
 		self.duq_model_output_size = 128
 		self.duq_learning_rate = 0.05
-		self.duq_l_gradient_penalty = 0.1 #0.5
+		self.duq_l_gradient_penalty = 0.5 #0.5
 		self.duq_gamma = 0.999
 		self.duq_length_scale = 0.1
 		self.duq_weight_decay = 5e-4

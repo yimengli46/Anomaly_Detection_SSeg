@@ -124,7 +124,9 @@ def calc_gradient_penalty(x, y_pred, par):
     #print('grad_norm = {}'.format(grad_norm))
     
     # Two sided penalty
-    gradient_penalty = ((grad_norm - 1) ** 2).mean()
+    #gradient_penalty = ((grad_norm - 1) ** 2).mean()
+    # One sided penalty
+    gradient_penalty = (torch.max((grad_norm - 1), torch.zeros_like(grad_norm))).mean()
     #print('E gradient_penalty.shape = {}'.format(gradient_penalty.shape))
     #print('gradient_penalty = {}'.format(gradient_penalty))
     return gradient_penalty

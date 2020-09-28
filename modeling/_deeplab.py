@@ -83,8 +83,8 @@ class DeepLabHead(nn.Module):
 
         self.classifier = nn.Sequential(
             ASPP(in_channels, aspp_dilate),
-            nn.Conv2d(256, 256, 3, padding=1, bias=False),
-            nn.BatchNorm2d(256),
+            nn.utils.spectral_norm(nn.Conv2d(256, 256, 3, padding=1, bias=False)),
+            #nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.Conv2d(256, num_classes, 1)
         )
@@ -130,8 +130,8 @@ class AtrousSeparableConvolution(nn.Module):
 class ASPPConv(nn.Sequential):
     def __init__(self, in_channels, out_channels, dilation):
         modules = [
-            nn.Conv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation, bias=False),
-            nn.BatchNorm2d(out_channels),
+            nn.utils.spectral_norm(nn.Conv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation, bias=False)),
+            #nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         ]
         super(ASPPConv, self).__init__(*modules)
@@ -140,8 +140,8 @@ class ASPPPooling(nn.Sequential):
     def __init__(self, in_channels, out_channels):
         super(ASPPPooling, self).__init__(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels, out_channels, 1, bias=False),
-            nn.BatchNorm2d(out_channels),
+            nn.utils.spectral_norm(nn.Conv2d(in_channels, out_channels, 1, bias=False)),
+            #nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True))
 
     def forward(self, x):
@@ -155,8 +155,8 @@ class ASPP(nn.Module):
         out_channels = 256
         modules = []
         modules.append(nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 1, bias=False),
-            nn.BatchNorm2d(out_channels),
+            nn.utils.spectral_norm(nn.Conv2d(in_channels, out_channels, 1, bias=False)),
+            #nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)))
 
         rate1, rate2, rate3 = tuple(atrous_rates)
@@ -168,8 +168,8 @@ class ASPP(nn.Module):
         self.convs = nn.ModuleList(modules)
 
         self.project = nn.Sequential(
-            nn.Conv2d(5 * out_channels, out_channels, 1, bias=False),
-            nn.BatchNorm2d(out_channels),
+            nn.utils.spectral_norm(nn.Conv2d(5 * out_channels, out_channels, 1, bias=False)),
+            #nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Dropout(0.1),)
 
