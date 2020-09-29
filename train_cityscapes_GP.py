@@ -16,7 +16,7 @@ import torch
 from modeling.utils import calc_gradient_penalty
 
 par = Parameters()
-
+print('---------duq_l_gradient_penalty = {}, lr = {}---------'.format(par.duq_l_gradient_penalty, par.lr))
 #=========================================================== Define Saver =======================================================
 saver = Saver(par)
 # Define Tensorboard Summary

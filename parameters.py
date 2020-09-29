@@ -41,4 +41,4 @@ class Parameters(object):
 		self.no_val = False
 
 		# duq params
-		self.duq_l_gradient_penalty = 0.1
+		self.duq_l_gradient_penalty = 0.5
