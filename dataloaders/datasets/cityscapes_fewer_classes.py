@@ -13,7 +13,9 @@ class CityscapesDataset_fewer(data.Dataset):
         self.split = split
         self.par = par
 
-        self.img_list = np.load('{}/{}_img_list.npy'.format(self.dataset_dir, self.split), allow_pickle=True)
+        self.img_list = np.load('{}/{}_img_list.npy'.format(self.dataset_dir, self.split), allow_pickle=True).tolist()
+        if split == 'train':
+            self.img_list.extend(self.img_list)
 
         self.void_classes = [0, 1, 2, 3, 4, 5, 10, 14, 15, 16, -1]
         self.valid_classes = [7, 11, 17, 21, 23, 24, 26, 31]

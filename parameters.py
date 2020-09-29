@@ -17,12 +17,12 @@ class Parameters(object):
 
 		# training hyper params
 		self.epochs = 200
-		self.batch_size = 4 #18
-		self.test_batch_size = 16
+		self.batch_size = 2 #18
+		self.test_batch_size = 2
 		self.use_balanced_weights = False
 
 		# optimizer params
-		self.lr = 0.1
+		self.lr = 0.05
 		self.lr_scheduler = 'poly' # 'poly', 'step', 'cos'
 
 		# cuda, seed and logging
@@ -41,4 +41,11 @@ class Parameters(object):
 		self.no_val = False
 
 		# duq params
-		self.duq_l_gradient_penalty = 0.5
+		self.duq_centroid_size = 512
+		self.duq_model_output_size = 256
+		self.duq_learning_rate = 0.05
+		self.duq_l_gradient_penalty = 0.1
+		self.duq_gamma = 0.999
+		self.duq_length_scale = 0.1
+		self.duq_weight_decay = 5e-4
+		self.duq_batch_p = 0.1
