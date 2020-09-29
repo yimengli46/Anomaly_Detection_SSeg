@@ -168,6 +168,7 @@ for epoch in range(par.epochs):
                 'optimizer': optimizer.state_dict(),
                 'best_pred': best_pred,
             }, is_best)
+    scheduler.step()
 
 trainer.writer.close()
 
