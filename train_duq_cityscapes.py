@@ -109,7 +109,7 @@ def calc_gradient_penalty(x, y_pred):
 model = Model_bilinear(256, par.duq_model_output_size, num_class, par.duq_centroid_size, par).cuda()
 
 optimizer = torch.optim.SGD(model.parameters(), lr=par.lr, momentum=0.9, weight_decay=1e-4)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=1)
 
 #========================================================================================================================
 best_pred = 0.0
@@ -193,7 +193,7 @@ for epoch in range(par.epochs):
             global_step = iter_num + num_img_tr * epoch
 
     print('[Epoch: %d, numImages: %5d]' % (epoch, iter_num * par.batch_size + images.data.shape[0]))
-    print('Loss: %.3f' % train_loss)
+    print('*********Loss: %.3f' % train_loss)
 
 #=============================================== eval stage ===========================================================
 
