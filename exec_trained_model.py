@@ -9,7 +9,7 @@ from dataloaders.datasets import LostAndFound, RoadAnomaly, Fishyscapes
 from torch.utils.data import DataLoader
 
 mode = 'resNet' #'resNet', 'mobileNet'
-saved_folder = 'results_duq/{}'.format('resNet_Fishyscapes') # resNet_lostAndFound, resNet_roadAnomaly
+saved_folder = 'results_SN/{}'.format('resNet_Fishyscapes') # resNet_lostAndFound, resNet_roadAnomaly
 num_class = 8
 
 dataset = 'Fishyscapes' #LostAndFound, RoadAnomaly, Fishyscapes
@@ -26,7 +26,7 @@ par = Parameters()
 par.test_batch_size = 2
 
 #'''ResNet
-par.resume = 'run/cityscapes/deeplab_duq/experiment_5/checkpoint.pth.tar'
+par.resume = 'run/cityscapes/deeplab_duq/experiment_2/checkpoint.pth.tar'
 par.duq_model_output_size = 128
 #'''
 
@@ -44,9 +44,9 @@ elif dataset == 'Fishyscapes':
 #================================================================================================================================
 # Define network
 if mode == 'mobileNet':
-    model = deeplabv3plus_duq_mobilenet(num_classes=num_class, output_stride=par.out_stride, par=par).cuda()
+    model = deeplabv3plus_duq_mobilenet(num_classes=num_class, output_stride=par.out_stride, pretrained_backbone=False, par=par).cuda()
 elif mode == 'resNet':
-    model = deeplabv3plus_duq_resnet50(num_classes=num_class, output_stride=par.out_stride, par=par).cuda()
+    model = deeplabv3plus_duq_resnet50(num_classes=num_class, output_stride=par.out_stride, pretrained_backbone=False, par=par).cuda()
 
 #===================================================== Resuming checkpoint ====================================================
 if par.resume is not None:
