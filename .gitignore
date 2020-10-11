@@ -7,8 +7,6 @@ modeling/__pycache__/
 modeling/backbone/__pycache__/
 modeling/sync_batchnorm/__pycache__/
 utils/__pycache__/
-run_train_sseg.sh
-run_train_duq.sh
 eval/RetinaNet_Fishyscapes_Static_Results/
 eval/RetinaNet_LostAndFound_Static_Results/
 eval/RetinaNet_LostAndFound_Static_Results_new/
@@ -21,4 +19,4 @@ eval/results/
 eval/trained_model/
 results_deeplab/
 results_duq/
-
+results_SN/

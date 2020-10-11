@@ -5,7 +5,7 @@ from utils.loss import SegmentationLosses
 from utils.saver import Saver
 from utils.summaries import TensorboardSummary
 from utils.metrics import Evaluator
-from utils.lr_scheduler import PolyLR
+from utils.lr_scheduler import LR_Scheduler
 from modeling.utils import set_bn_momentum, calc_gradient_penalty
 
 from parameters import Parameters
@@ -39,12 +39,14 @@ model = deeplabv3plus_duq_resnet50(num_classes=num_class, output_stride=par.out_
 
 set_bn_momentum(model.backbone, momentum=0.01)
 
+par.resume = 'run/cityscapes/deeplab_duq/experiment_0/checkpoint.pth.tar'
+
 #=========================================================== Define Optimizer ================================================
 import torch.optim as optim
 train_params = [{'params': model.backbone.parameters(), 'lr': par.lr*0.1},
                 {'params': model.classifier.parameters(), 'lr': par.lr}]
 optimizer = optim.SGD(train_params, lr=par.lr, momentum=0.9, weight_decay=1e-4)
-scheduler = PolyLR(optimizer, 10000, power=0.9)
+scheduler = LR_Scheduler('poly', par.lr, par.epochs, len(dataset_train))
 
 # Define Criterion
 # whether to use class balanced weights
@@ -60,12 +62,9 @@ if par.resume is not None:
     if not os.path.isfile(par.resume):
         raise RuntimeError("=> no checkpoint found at '{}'" .format(par.resume))
     checkpoint = torch.load(par.resume)
-    par.start_epoch = checkpoint['epoch']
     model.load_state_dict(checkpoint['state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
-    best_pred = checkpoint['best_pred']
     print("=> loaded checkpoint '{}' (epoch {})".format(par.resume, checkpoint['epoch']))
-
+#assert 1==2
 #=================================================================trainin
 for epoch in range(par.epochs):
     train_loss = 0.0   
@@ -75,6 +74,7 @@ for epoch in range(par.epochs):
         print('epoch = {}, iter_num = {}'.format(epoch, iter_num))
 
         model.train()
+        scheduler(optimizer, iter_num, epoch, best_pred)
         optimizer.zero_grad()
 
         images, targets = sample['image'], sample['label']
