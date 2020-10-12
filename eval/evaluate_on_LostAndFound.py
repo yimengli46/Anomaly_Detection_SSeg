@@ -10,7 +10,9 @@ uncertainty_threshold_list = [x/100.0 for x in range(5, 95, 5)]
 
 #big_outlier_list = [2, 3, 4, 7, 10, 11, 15, 16, 25, 27, 31, 33, 34, 35, 38, 40, 45, 46, 48, 50, 51, 54, 57, 60, 61, 63, 65, 68, 71, 72, 74, 76, 83, 84, 85, 86, 91, 93, 95]
 
-big_outlier_list = [2, 4, 10, 16, 27, 38, 45, 50, 51, 61, 65, 68, 74, 76, 83, 84, 95]
+#big_outlier_list = [2, 4, 10, 16, 27, 38, 45, 50, 51, 61, 65, 68, 74, 76, 83, 84, 95]
+
+big_outlier_list = [2, 4, 16, 27, 45, 51, 61, 65, 68, 76, 83, 84]
 
 num_test_imgs = len(big_outlier_list)
 all_mIoU = np.zeros(num_test_imgs)

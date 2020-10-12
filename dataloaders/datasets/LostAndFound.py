@@ -6,7 +6,7 @@ from torch.utils import data
 from torchvision import transforms
 from dataloaders import custom_transforms as tr
 
-class Fishyscapes(data.Dataset):
+class LostAndFound(data.Dataset):
     def __init__(self, par, dataset_dir):
         self.dataset_dir = dataset_dir
         self.par = par
@@ -32,5 +32,4 @@ class Fishyscapes(data.Dataset):
             tr.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
             tr.ToTensor()])
         return composed_transforms(sample)
-
 

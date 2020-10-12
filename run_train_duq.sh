@@ -23,7 +23,6 @@
 #SBATCH --mem=30G        # Total memory needed per task (units: K,M,G,T)
 
 #SBATCH --gres=gpu:1
-#SBATCH --deadline=10.11-06:00
 
 ## Load the relevant modules needed for the job
 module load python/3.6.7

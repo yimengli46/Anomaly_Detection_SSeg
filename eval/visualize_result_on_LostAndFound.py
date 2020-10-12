@@ -8,7 +8,7 @@ from utils import apply_color_map
 
 #==================================================set up parameters===================================================================
 dataset_base_folder = '/projects/kosecka/yimeng/Datasets/{}'.format('Lost_and_Found')
-result_folder = 'results_duq/resNet_lostAndFound' #'results/mobileNet_lostAndFound'
+result_folder = 'results_duq_temp/resNet_lostAndFound' #'results/mobileNet_lostAndFound'
 
 #===================================================== process output ===============================================================
 for i in range(100):
