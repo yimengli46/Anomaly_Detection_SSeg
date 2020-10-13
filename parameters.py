@@ -5,7 +5,7 @@ class Parameters(object):
 		self.backbone = 'resnet' #'resnet', 'xception', 'drn', 'mobilenet'
 		self.out_stride = 16 #8
 		self.dataset = 'cityscapes' # 'pascal', 'coco', 'cityscapes'
-		self.checkname = 'deeplab_duq'
+		self.checkname = 'deeplab_duq_2'
 		self.use_sbd = True
 		#self.workers = 4
 		self.base_size = 512 #1024

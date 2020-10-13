@@ -39,7 +39,7 @@ model = deeplabv3plus_duq_resnet50(num_classes=num_class, output_stride=par.out_
 
 set_bn_momentum(model.backbone, momentum=0.01)
 
-par.resume = 'run/cityscapes/deeplab_duq/experiment_8/checkpoint.pth.tar'
+par.resume = 'run/cityscapes/deeplab_duq/experiment_5/checkpoint.pth.tar'
 
 #=========================================================== Define Optimizer ================================================
 import torch.optim as optim
@@ -200,6 +200,14 @@ for epoch in range(par.epochs):
                 'optimizer': optimizer.state_dict(),
                 'best_pred': best_pred,
             }, is_best)
+        else:
+            is_best = False
+            saver.save_checkpoint({
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'best_pred': new_pred,
+            }, is_best, filename='checkpoint_latest.pth.tar')
 
 writer.close()
 
