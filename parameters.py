@@ -5,7 +5,7 @@ class Parameters(object):
 		self.backbone = 'resnet' #'resnet', 'xception', 'drn', 'mobilenet'
 		self.out_stride = 16 #8
 		self.dataset = 'cityscapes' # 'pascal', 'coco', 'cityscapes'
-		self.checkname = 'try_sseg'
+		self.checkname = 'dropout'
 		self.use_sbd = True
 		self.workers = 4
 		self.base_size = 512 #1024
@@ -31,7 +31,7 @@ class Parameters(object):
 
 		# checking point
 		self.resume = None #'run/cityscapes/deeplab_resnet/experiment_5/checkpoint.pth.tar' #None
-		self.checkname = 'deeplab_{}'.format(self.backbone)
+		self.checkname = 'deeplab_dropout_{}'.format(self.backbone)
 
 		# finetuning pre-trained models
 		self.ft = False

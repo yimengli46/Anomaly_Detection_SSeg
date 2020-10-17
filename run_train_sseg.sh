@@ -30,4 +30,4 @@ module load cuda/10.1
 source /scratch/yli44/anomaly_env/bin/activate
 
 ## Run your program or script
-python train_cityscapes_GP.py
+python train_cityscapes.py

@@ -23,11 +23,11 @@ writer = summary.create_summary()
 
 #=========================================================== Define Dataloader ==================================================
 #dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
-dataset_train = cityscapes_fewer_classes.CityscapesDataset_fewer(par, dataset_dir='data/cityscapes', split='train')
+dataset_train = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='train')
 num_class = dataset_train.NUM_CLASSES
 dataloader_train = DataLoader(dataset_train, batch_size=par.batch_size, shuffle=True, num_workers=int(par.batch_size/2))
 
-dataset_val = cityscapes_fewer_classes.CityscapesDataset_fewer(par, dataset_dir='data/cityscapes', split='val')
+dataset_val = cityscapes.CityscapesDataset(par, dataset_dir='data/cityscapes', split='val')
 dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
 
 #================================================================================================================================
@@ -77,7 +77,7 @@ for epoch in range(par.epochs):
         images, targets = images.cuda(), targets.cuda()
         
         #================================================ compute loss =============================================
-        output, _ = model(images)
+        output, _, _ = model(images)
         #print('output.shape = {}'.format(output.shape))
 
         loss = criterion(output, targets)
@@ -115,7 +115,7 @@ for epoch in range(par.epochs):
 
             #========================== compute loss =====================
             with torch.no_grad():
-                output, _ = model(images)
+                output, _, _ = model(images)
             loss = criterion(output, targets)
 
             test_loss += loss.item()

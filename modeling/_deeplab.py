@@ -32,6 +32,7 @@ class DeepLabHeadV3Plus(nn.Module):
             nn.Conv2d(low_level_channels, 48, 1, bias=False),
             nn.BatchNorm2d(48),
             nn.ReLU(inplace=True),
+            nn.Dropout2d(p=0.2)
         )
 
         self.aspp = ASPP(in_channels, aspp_dilate)
@@ -40,6 +41,7 @@ class DeepLabHeadV3Plus(nn.Module):
             nn.Conv2d(304, 256, 3, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
+            nn.Dropout2d(p=0.2),
             nn.Conv2d(256, num_classes, 1)
         )
         self._init_weight()
