@@ -9,10 +9,10 @@ from dataloaders.datasets import LostAndFound, RoadAnomaly, cityscapes, cityscap
 from torch.utils.data import DataLoader
 
 mode = 'resNet' #'resNet', 'mobileNet'
-saved_folder = 'results_duq/{}'.format('resNet_features') 
+saved_folder = 'results_duq/{}'.format('resNet_lowLevel_features') 
 num_class = 8
 
-dataset = 'cityscapes' #LostAndFound, RoadAnomaly, cityscapes
+dataset = 'LostAndFound' #LostAndFound, RoadAnomaly, cityscapes
 
 if dataset == 'LostAndFound':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/Lost_and_Found'
@@ -31,7 +31,7 @@ par.duq_model_output_size = 128
 '''
 
 #'''ResNet
-par.resume = 'run/cityscapes/deeplab_duq/experiment_5/checkpoint.pth.tar'
+par.resume = 'run/cityscapes/deeplab_duq/experiment_8/checkpoint.pth.tar'
 par.duq_model_output_size = 128
 #'''
 
@@ -49,7 +49,9 @@ elif dataset == 'cityscapes':
 #big_outlier_list = [2, 3, 4, 7, 10, 11, 15, 16, 25, 27, 31, 33, 34, 35, 38, 40, 45, 46, 48, 50, 51, 54, 57, 60, 61, 63, 65, 
 #    68, 71, 72, 74, 76, 83, 84, 85, 86, 91, 93, 95]
 
-big_outlier_list = [2, 4, 10, 16, 27, 38, 45, 50, 51, 61, 65, 68, 74, 76, 83, 84, 95]
+#big_outlier_list = [2, 4, 10, 16, 27, 38, 45, 50, 51, 61, 65, 68, 74, 76, 83, 84, 95]
+
+big_outlier_list = [2, 4, 16, 27, 45, 51, 61, 65, 68, 76, 83, 84]
 
 #================================================================================================================================
 # Define network
@@ -71,7 +73,7 @@ if par.resume is not None:
     model.eval()
     count = 0
     for iter_num, sample in enumerate(dataloader_val):
-        if dataset == 'cityscapes' and iter_num == 5:
+        if dataset == 'cityscapes' and iter_num == 25:
             break
         print('iter_num = {}'.format(iter_num))
         images, targets = sample['image'], sample['label']
@@ -81,15 +83,17 @@ if par.resume is not None:
 
         #================================================ compute loss =============================================
         with torch.no_grad():
-            output, _, z = model(images) #output.shape = batch_size x num_classes x H x W
+            _, _, z = model(images) #output.shape = batch_size x num_classes x H x W
             print('z.shape = {}'.format(z.shape))
+
             input_shape = targets.shape[-2:]
             z_interpolated = F.interpolate(z, size=input_shape, mode='bilinear', align_corners=False)
             print('interpolated z.shape = {}'.format(z_interpolated.shape))
-            
-            z_interpolated = z_interpolated.data.cpu().numpy()
+            #assert 1==2
+            z_interpolated = z_interpolated.data.cpu().numpy()[:, :]
+            print('interpolated z.shape = {}'.format(z_interpolated.shape))
             targets = targets.numpy().astype(np.uint8)
-
+        #assert 1==2
         N, _, _, _ = z.shape
         for i in range(N):
             result = {}

@@ -61,7 +61,7 @@ class DeepLabHeadV3Plus_duq(nn.Module):
 
     def forward(self, feature):
         low_level_feature = self.project( feature['low_level'] )
-        #print('feature[out].shape = {}'.format(feature['out'].shape))
+        #print('low_level.shape.shape = {}'.format(low_level_feature.shape))
         output_feature = self.aspp(feature['out'])
         output_feature = F.interpolate(output_feature, size=low_level_feature.shape[2:], mode='bilinear', align_corners=False)
         temp_z = torch.cat([low_level_feature, output_feature], dim=1)
@@ -93,7 +93,7 @@ class DeepLabHeadV3Plus_duq(nn.Module):
         #print('z.shape = {}'.format(z.shape))
         #'''
 
-        return y_pred, z
+        return y_pred, feature['low_level']
 
 #'''
     def update_embeddings(self, feature, y_targets):

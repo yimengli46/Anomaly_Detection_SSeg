@@ -109,7 +109,6 @@ def step(batch):
 
     return loss.item()
 
-
 def eval_step(batch):
     model.eval()
 
