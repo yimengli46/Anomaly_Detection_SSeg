@@ -10,3 +10,6 @@ utils/__pycache__/
 eval/
 results_deeplab/
 results_duq/
+dataloaders/datasets/Fishyscapes.py
+results_SN/
+results_duq_temp/
