@@ -8,16 +8,15 @@ from PIL import Image
 from dataloaders.datasets import LostAndFound, RoadAnomaly, Fishyscapes
 from torch.utils.data import DataLoader
 
-saved_folder = 'results_duq_temp/{}'.format('resNet_roadAnomaly') # resNet_lostAndFound, resNet_roadAnomaly, resNet_Fishyscapes
+dataset = 'fishyscapes' # lostAndFound, roadAnomaly, fishyscapes
+saved_folder = 'results_duq/resNet_{}'.format(dataset) # lostAndFound, roadAnomaly, fishyscapes
 num_class = 8
 
-dataset = 'RoadAnomaly' #LostAndFound, RoadAnomaly, Fishyscapes
-
-if dataset == 'LostAndFound':
+if dataset == 'lostAndFound':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/Lost_and_Found'
-elif dataset == 'RoadAnomaly':
+elif dataset == 'roadAnomaly':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/RoadAnomaly'
-elif dataset == 'Fishyscapes':
+elif dataset == 'fishyscapes':
     dataset_folder = '/projects/kosecka/yimeng/Datasets/Fishyscapes_Static'
 
 #====================================================== change the parameters============================================================
@@ -25,17 +24,17 @@ par = Parameters()
 par.test_batch_size = 2
 
 #'''ResNet
-par.resume = 'run/cityscapes/deeplab_duq/experiment_8/checkpoint.pth.tar'
+par.resume = 'run/cityscapes/deeplab_duq/experiment_0/checkpoint.pth.tar'
 #'''
 
 #=========================================================== Define Dataloader ==================================================
-if dataset == 'LostAndFound':
+if dataset == 'lostAndFound':
     dataset_val = LostAndFound.LostAndFound(par, dataset_dir=dataset_folder)
     dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
-elif dataset == 'RoadAnomaly':
+elif dataset == 'roadAnomaly':
     dataset_val = RoadAnomaly.RoadAnomaly(par, dataset_dir=dataset_folder)
     dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
-elif dataset == 'Fishyscapes':
+elif dataset == 'fishyscapes':
     dataset_val = Fishyscapes.Fishyscapes(par, dataset_dir=dataset_folder)
     dataloader_val = DataLoader(dataset_val, batch_size=par.test_batch_size, shuffle=False, num_workers=int(par.test_batch_size/2))
 
@@ -73,15 +72,17 @@ if par.resume is not None:
             class_prediction = np.argmax(pred, axis=0)
             uncertainty_mat = np.amax(pred, axis=0)
 
-            pred = np.sort(pred, axis=0)
-            print('pred.shape = {}'.format(pred.shape))
+            # 1 means large uncertainty
+            uncertainty_mat = 1 - uncertainty_mat
+
+            #assert 1==2
 
             result = {}
             result['sseg'] = class_prediction
             result['uncertainty'] = uncertainty_mat
-            #result['all_pred'] = pred
+            
             np.save('{}/{}_result.npy'.format(saved_folder, count), result)
             count += 1
 
-
+            #assert 1==2
 
